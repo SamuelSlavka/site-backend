@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS restaurant;
+DROP TABLE IF EXISTS lunch;
+
+CREATE TABLE IF NOT EXISTS restaurant (
+    id INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,
+    restaurantEndpoint TEXT NOT NULL,
+    restaurantDescription TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS lunch (
+    id INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,
+    restaurant_id INTEGER NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurant (id)
+)

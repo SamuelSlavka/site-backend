@@ -1,14 +1,34 @@
 import os
+import sys
 from flask import Flask
 
-EXTERNAL_SERVICE_KEY = os.environ.get('EXTERNAL_SERVICE_KEY')
-
 app = Flask(__name__)
+app.debug = True
 
+def get_restaurants():
+    return {}
 
-@app.route("/")
-def index():
-    return "Hello World!"
+def get_lunches(restaurantIds):
+    return {}
+    
+@app.route('/')
+@app.route('/api/')
+def home():
+    return 'Hello there!'
+
+@app.route('/api/restaurants/', methods=['GET'])
+def getRestaurants():
+    """ Deployed restaurants """
+    return get_restaurants(), 200
+
+@app.route('/api/lunches/', methods=['POST'])
+def getLunches():
+    """ Deployed lunches """
+    req = Flask.request.get_json(force=True)
+    restaurantIds = req.get('restaurantIds', None)
+    return get_lunches(restaurantIds), 200
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
