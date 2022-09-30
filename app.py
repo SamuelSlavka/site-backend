@@ -1,9 +1,14 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 from flask import Flask
+from db import *
 
 app = Flask(__name__)
 app.debug = True
+
+create_tables()
 
 def get_restaurants():
     return {}

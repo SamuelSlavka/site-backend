@@ -1,16 +1,19 @@
+#!/usr/bin/env python3
+
 """ DB interaction """
+import os
 import psycopg2
-from .constants import *
+from dotenv import load_dotenv
 
 
 
 def connect_db():
     """ Connect to db """
     return psycopg2.connect(
-        host=HOST,
-        database=DATABASE,
-        user=USER,
-        password=PASSWORD
+        host=os.getenv('PSQL_HOST'),
+        database=os.getenv('PSQL_DATABASE'),
+        user=os.getenv('PSQL_USER'),
+        password=os.getenv('PSQL_PASSWORD')
     )
 
 
@@ -19,17 +22,17 @@ def create_tables():
     commands = (
         """
         CREATE TABLE IF NOT EXISTS restaurant (
-           id INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,
-           restaurantEndpoint TEXT NOT NULL,
-           restaurantDescription TEXT NOT NULL
+            id serial PRIMARY KEY NOT NULL,
+            restaurantEndpoint TEXT NOT NULL,
+            restaurantDescription TEXT NOT NULL
         )
         """,
         """ 
         CREATE TABLE IF NOT EXISTS lunch (
-           id INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,
-           restaurant_id INTEGER NOT NULL,
-           value TEXT NOT NULL,
-           FOREIGN KEY (author_id) REFERENCES user (id)
+            id serial PRIMARY KEY NOT NULL,
+            restaurant_id INTEGER NOT NULL,
+            value TEXT NOT NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES restaurant (id)
            )
         """)
     conn = None
