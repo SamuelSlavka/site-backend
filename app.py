@@ -9,13 +9,6 @@ app = Flask(__name__)
 app.debug = True
 
 create_tables()
-
-def get_restaurants():
-    return {}
-
-def get_lunches(restaurantIds):
-    return {}
-    
 @app.route('/')
 @app.route('/api/')
 def home():
@@ -26,12 +19,12 @@ def getRestaurants():
     """ Deployed restaurants """
     return get_restaurants(), 200
 
-@app.route('/api/lunches/', methods=['POST'])
+@app.route('/api/lunches/', methods=['GET'])
 def getLunches():
     """ Deployed lunches """
-    req = Flask.request.get_json(force=True)
-    restaurantIds = req.get('restaurantIds', None)
-    return get_lunches(restaurantIds), 200
+    # req = Flask.request.get_json(force=True)
+    # restaurantIds = req.get('restaurantIds', None)
+    return get_lunches(['1','2']), 200
 
 
 if __name__ == "__main__":

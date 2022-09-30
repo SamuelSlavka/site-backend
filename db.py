@@ -4,7 +4,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
-
+import json 
 
 
 def connect_db():
@@ -19,10 +19,12 @@ def connect_db():
 
 def create_tables():
     """ creates initial tables """
+    loadFixtures = not are_fixtures_loaded();
     commands = (
         """
         CREATE TABLE IF NOT EXISTS restaurant (
             id serial PRIMARY KEY NOT NULL,
+            restaurantName TEXT NOT NULL,
             restaurantEndpoint TEXT NOT NULL,
             restaurantDescription TEXT NOT NULL
         )
@@ -35,80 +37,99 @@ def create_tables():
             FOREIGN KEY (restaurant_id) REFERENCES restaurant (id)
            )
         """)
-    conn = None
+    connection = None
     try:
-        conn = connect_db()
-        cur = conn.cursor()
-
+        connection = connect_db()
+        cursor = connection.cursor()
+        if( loadFixtures ):
+            commands += get_fixture_commands()
+        print(commands)
         # create tables
         for command in commands:
-            cur.execute(command)
+            cursor.execute(command)
 
         # close communication with the db
-        cur.close()
+        cursor.close()
 
         # commit the changes
-        conn.commit()
-
+        connection.commit()
     except Exception as error:
         print(error)
     finally:
-        if conn is not None:
-            conn.close()
+        if connection is not None:
+            connection.close()
 
+def get_fixture_commands():
+    commands = ()
+    file = open('fixtures.json')
+    data = json.load(file)["restaurants"]
+    for restaurant in data:
+        command = f'INSERT INTO restaurant (restaurantName, restaurantEndpoint, restaurantDescription)'
+        command += f' VALUES (\'{restaurant["restaurantName"]}\', \'{restaurant["restaurantEndpoint"]}\', \'{restaurant["restaurantDescription"]}\');'
+        commands += (command,)
+    return commands
+
+def are_fixtures_loaded():
+    """ checks if fixtures should be loaded """
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("select * from information_schema.tables where table_name=%s", ('restaurant',))
+    return bool(cursor.rowcount)
 
 def set_restaurant(restaurantEndpoint, restaurantDescription):
     """ save message to db """
-    conn = connect_db()
-    cur = conn.cursor()
+    connection = connect_db()
+    cursor = connection.cursor()
 
-    cur.execute(
+    cursor.execute(
         "INSERT INTO restaurant (restaurantEndpoint, restaurantDescription) "
         "VALUES (%s, %s)",
         (restaurantEndpoint, restaurantDescription,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 def set_lunch(restaurant_id, value):
     """ save message to db """
-    conn = connect_db()
-    cur = conn.cursor()
+    connection = connect_db()
+    cursor = connection.cursor()
 
-    cur.execute(
+    cursor.execute(
         "INSERT INTO lunch (restaurant_id, value) "
         "VALUES (%s, %s)",
         (restaurant_id, value,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 def get_restaurants():
     """ returns list of restaurants """
-    conn = connect_db()
-    cur = conn.cursor()
+    connection = connect_db()
+    cursor = connection.cursor()
 
-    cur.execute("SELECT DISTINCT id, restaurantEndpoint, restaurantDescription FROM restaurant;")
+    cursor.execute("SELECT DISTINCT id, restaurantEndpoint, restaurantDescription FROM restaurant;")
     res = []
-    for row in cur:
+    for row in cursor:
         res.append(row)
 
-    cur.close()
-    conn.close()
+    cursor.close()
+    connection.close()
     return res
 
 def get_lunches(restaurantIds):
     """ returns lunches based on ids """
-    conn = connect_db()
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT DISTINCT id, restaurant_id, value FROM lunch WHERE restaurant_id && %s;",
-        (restaurantIds,))
+    connection = connect_db()
+    cursor = connection.cursor()
+    
+    sqlRestaurntIds = tuple(restaurantIds)
+    print(sqlRestaurntIds)
+    cursor.execute(
+        "SELECT DISTINCT id, restaurant_id, value FROM lunch WHERE restaurant_id IN %s;",
+        (sqlRestaurntIds,))
     res = []
-    for row in cur:
+    for row in cursor:
         res.append(row)
 
-    cur.close()
-    conn.close()
+    cursor.close()
+    connection.close()
     return res

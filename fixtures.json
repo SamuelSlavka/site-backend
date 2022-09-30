@@ -1,0 +1,29 @@
+{
+  "restaurants": [
+    {
+      "restaurantName": "pokhara",
+      "restaurantEndpoint": "https://www.pokhara.cz/",
+      "restaurantDescription": "nepal"
+    },
+    {
+      "restaurantName": "tusto",
+      "restaurantEndpoint": "https://titanium.tusto.cz/#menu",
+      "restaurantDescription": "italian"
+    },
+    {
+      "restaurantName": "omega",
+      "restaurantEndpoint": "http://www.krusovickaomega.cz/cz/tydenni-menu",
+      "restaurantDescription": "various"
+    },
+    {
+      "restaurantName": "skanzeen",
+      "restaurantEndpoint": "https://www.skanzeen.cz/",
+      "restaurantDescription": "slovak"
+    },
+    {
+      "restaurantName": "basilico",
+      "restaurantEndpoint": "https://pizzeriebasilico.cz/tydenni-menu/",
+      "restaurantDescription": "italian"
+    }
+  ]
+}
