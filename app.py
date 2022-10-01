@@ -9,6 +9,7 @@ app = Flask(__name__)
 app.debug = True
 
 create_tables()
+
 @app.route('/')
 @app.route('/api/')
 def home():

@@ -3,7 +3,8 @@ services:
   backend:  
     container_name: backend.app
     image: ${IMAGE_APP_TAG}
-    build:
+    build: 
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
