@@ -21,7 +21,7 @@ docker-build:
   image: docker/compose:latest
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - echo "IMAGE_APP_TAG=$STAGE_IMAGE_APP_TAG" >> .env
+    - echo "$ENV_FILE" | tr -d '\r' > .env
   script:
     - docker-compose down
     - docker-compose build
