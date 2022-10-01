@@ -10,10 +10,10 @@ import json
 def connect_db():
     """ Connect to db """
     return psycopg2.connect(
-        host=os.getenv('PSQL_HOST'),
-        database=os.getenv('PSQL_DATABASE'),
-        user=os.getenv('PSQL_USER'),
-        password=os.getenv('PSQL_PASSWORD')
+        host="172.17.0.1",
+        database="postgres",
+        user="postgres",
+        password="postgres"
     )
 
 

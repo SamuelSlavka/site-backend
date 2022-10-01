@@ -2,7 +2,7 @@ version: '3.4'
 services:
   backend:  
     container_name: backend.app
-    image: ${IMAGE_APP_TAG}
+    image: registry.gitlab.com/samuelslavka/site-backend
     build: 
       context: .
       dockerfile: Dockerfile
@@ -18,7 +18,10 @@ services:
 
   db:
     container_name: backend.db
-    image: postgres:latest
+    image: postgres
+    restart: always
+    env_file:
+      - .env
     environment:
       - POSTGRES_DB=${PSQL_HOST}
       - POSTGRES_USER=${PSQL_USER}

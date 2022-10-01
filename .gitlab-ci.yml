@@ -20,9 +20,9 @@ docker-build:
   stage: docker-build
   image: jdrouet/docker-with-buildx:stable
   before_script:
+    - echo "$ENV_FILE" | tr -d '\r' > .env
     - docker buildx create --use
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - echo "$ENV_FILE" | tr -d '\r' > .env
   script:
     - docker buildx build --push --platform linux/arm64/v8 --pull -t registry.gitlab.com/samuelslavka/site-backend .
 
