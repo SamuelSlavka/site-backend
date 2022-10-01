@@ -1,0 +1,67 @@
+stages:
+  - test
+  - docker-build
+  - deploy
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  REPOSITORY: ${IMAGE_APP_TAG}
+
+services: 
+  - docker:dind
+
+test:
+  stage: test
+  script:
+    - echo "Running tests"
+
+docker-build:
+  stage: docker-build
+  image: docker/compose:latest
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - echo "IMAGE_APP_TAG=$STAGE_IMAGE_APP_TAG" >> .env
+  script:
+    - docker-compose down
+    - docker-compose build
+    - docker-compose push
+
+deploy:
+  image: ubuntu:latest
+  stage: deploy
+  before_script:
+    - echo "preparing tunnel"
+    - apt-get -qq -o=Dpkg::Use-Pty=0 update 
+    - DEBIAN_FRONTEND=noninteractive apt-get -yqq install curl 2> /dev/null
+    - mkdir -p --mode=0755 /usr/share/keyrings
+    - curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+    - echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared focal main' | tee /etc/apt/sources.list.d/cloudflared.list
+
+    - apt-get -qq -o=Dpkg::Use-Pty=0 update
+    - DEBIAN_FRONTEND=noninteractive apt-get -y -qq -o=Dpkg::Use-Pty=0 install ssh git cloudflared 2> /dev/null
+    - cloudflared --version
+
+    - echo "preparing ssh"
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > key.pem
+    - chmod 400 key.pem
+    - echo "$SSH_ROOT_PRIVATE_KEY" | tr -d '\r' > root-key.pem
+    - chmod 400 root-key.pem
+    - echo "$SSH_CONFIG" | tr -d '\r' > /etc/ssh/ssh_config.d/config.conf
+    
+    - echo "$ENV_FILE" | tr -d '\r' > .env
+    - echo "deploying"
+  script:
+    - scp -4 -o StrictHostKeyChecking=no -i key.pem .env rpi@$PROD_SERVER_IP:~/.env
+    - scp -4 -o StrictHostKeyChecking=no -i key.pem docker-compose.yml rpi@$PROD_SERVER_IP:~/docker-compose.yml
+
+    - ssh -4 -o StrictHostKeyChecking=no -i root-key.pem root@$PROD_SERVER_IP "pacman --noconfirm -S cloudflared"
+    # - ssh -4 -o StrictHostKeyChecking=no -i root-key.pem root@$PROD_SERVER_IP "(ls site-backend >> /dev/null 2>&1 && rm -rf site-backend) || echo 0"
+    - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    # - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "(ls site-backend >> /dev/null 2>&1 && echo 0) || git clone https://gitlab.com/SamuelSlavka/site-backend.git"
+    # - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "cd ~/site-backend && git pull"
+    - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose down"
+    - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose pull"
+    - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose up -d"
+
+
