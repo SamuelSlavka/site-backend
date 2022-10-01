@@ -2,15 +2,15 @@ version: '3.4'
 services:
   backend:  
     container_name: backend.app
-    image: registry.gitlab.com/samuelslavka/site-backend
+    image: ${IMAGE_APP_TAG}
     build: 
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
       - '5000:5000'
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     env_file:
       - .env
     depends_on:
