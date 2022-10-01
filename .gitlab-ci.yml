@@ -25,7 +25,8 @@ docker-build:
   script:
     - ls
     - pwd
-    - docker-compose down
+    - cat docker-compose.yml
+    - docker-compose --verbose down
     - docker-compose build
     - docker-compose push
 
