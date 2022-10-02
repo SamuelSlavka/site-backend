@@ -17,7 +17,7 @@ def connect_db():
     )
 
 
-def execute_commands(commands)
+def execute_commands(commands):
     connection = None
     try:
         connection = connect_db()
