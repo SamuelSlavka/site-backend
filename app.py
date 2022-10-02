@@ -3,7 +3,6 @@
 import json
 import flask
 from flask_cors import CORS, cross_origin
-from db import *
 from flask import Flask, request, render_template, url_for, jsonify, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 
