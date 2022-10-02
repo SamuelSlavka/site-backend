@@ -52,7 +52,7 @@ deploy:
     - echo "$ENV_FILE" | tr -d '\r' > .env
     - echo "deploying"
   script:
-    - ssh -4 -o StrictHostKeyChecking=no -i root-key.pem root@$PROD_SERVER_IP "pwd"
+    - ssh -4 -o StrictHostKeyChecking=no -i root-key.pem root@$PROD_SERVER_IP "cd /home/rpi/ ; chown -R -v rpi:rpi ./db"
 
     - scp -4 -o StrictHostKeyChecking=no -i key.pem .env rpi@$PROD_SERVER_IP:~/.env
     - scp -4 -o StrictHostKeyChecking=no -i key.pem docker-compose.yml rpi@$PROD_SERVER_IP:~/docker-compose.yml
