@@ -45,8 +45,10 @@ deploy:
     
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > key.pem
     - chmod 400 key.pem
+    - echo "$SSH_ROOT_PRIVATE_KEY" | tr -d '\r' > root-key.pem
+    - chmod 400 root-key.pem
+
     - echo "$SSH_CONFIG" | tr -d '\r' > /etc/ssh/ssh_config.d/config.conf
-    
     - echo "$ENV_FILE" | tr -d '\r' > .env
     - echo "deploying"
   script:
