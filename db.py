@@ -41,8 +41,8 @@ def create_tables():
     try:
         connection = connect_db()
         cursor = connection.cursor()
-        # if( loadFixtures ):
-            # commands += get_fixture_commands()
+        if( loadFixtures ):
+            commands += get_fixture_commands()
         print(commands)
         # create tables
         for command in commands:
