@@ -55,7 +55,7 @@ deploy:
     - ssh -4 -o StrictHostKeyChecking=no -i root-key.pem root@$PROD_SERVER_IP "cd /home/rpi/ ; chown -R -v rpi:rpi ./db"
 
     - scp -4 -o StrictHostKeyChecking=no -i key.pem .env rpi@$PROD_SERVER_IP:~/.env
-    - scp -4 -o StrictHostKeyChecking=no -i key.pem docker-compose.yml rpi@$PROD_SERVER_IP:~/docker-compose.yml
+    - scp -4 -o StrictHostKeyChecking=no -i key.pem docker-compose-deploy.yml rpi@$PROD_SERVER_IP:~/docker-compose.yml
 
     - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose down"
