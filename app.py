@@ -72,13 +72,16 @@ def fixtures():
         rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
                            "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
         db.session.add(rest)
-        
     db.session.commit()
-    for lunch in data["lunches"]:
-        rest = Lunches(restaurant_id=lunch["restaurant_id"], value=lunch["value"])
-        db.session.add(rest)
+    
+    retaurants = Restaurants.query.all()
+    if(retaurants):
+        restId = retaurants[0].id
+        for lunch in data["lunches"]:
+            rest = Lunches(restaurant_id=restId, value=lunch["value"])
+            db.session.add(rest)
         
-    db.session.commit()
+        db.session.commit()
     return 'Ok'
 
 

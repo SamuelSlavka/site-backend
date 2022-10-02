@@ -28,21 +28,18 @@
   ],
   "lunches": [
     {
-      "restaurant_id": 33,
       "value": {
         "1": "first",
         "2": "second"
       }
     },
     {
-      "restaurant_id": 34,
       "value": {
         "3": "trd",
         "4": "frth"
       }
     },
     {
-      "restaurant_id": 34,
       "value": {
         "3": "trd",
         "4": "frth"
