@@ -17,9 +17,28 @@ def connect_db():
     )
 
 
+def execute_commands(commands)
+    connection = None
+    try:
+        connection = connect_db()
+        cursor = connection.cursor()
+        # run commands
+        for command in commands:
+            cursor.execute(command)
+
+        # close communication with the db
+        cursor.close()
+
+        # commit the changes
+        connection.commit()
+    except Exception as error:
+        print(error)
+    finally:
+        if connection is not None:
+            connection.close()
+
 def create_tables():
     """ creates initial tables """
-    loadFixtures = not are_fixtures_loaded();
     commands = (
         """
         CREATE TABLE IF NOT EXISTS restaurant (
@@ -37,28 +56,12 @@ def create_tables():
             FOREIGN KEY (restaurant_id) REFERENCES restaurant (id)
            )
         """)
-    connection = None
-    try:
-        connection = connect_db()
-        cursor = connection.cursor()
-        if( loadFixtures ):
-            commands += get_fixture_commands()
-        print(commands)
-        # create tables
-        for command in commands:
-            cursor.execute(command)
+    execute_commands(execute_commands)
 
-        # close communication with the db
-        cursor.close()
-
-        # commit the changes
-        connection.commit()
-    except Exception as error:
-        print(error)
-    finally:
-        if connection is not None:
-            connection.close()
-
+def load_fixtures():
+    commands = get_fixture_commands()
+    execute_commands(commands)
+        
 def get_fixture_commands():
     commands = ()
     file = open('fixtures.json')

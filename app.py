@@ -15,6 +15,11 @@ create_tables()
 def home():
     return 'Hello there!'
 
+@app.route('/api/fixtures/')
+def fixtures():
+    load_fixtures()
+    return 'Ok'
+
 @app.route('/api/restaurants/', methods=['GET'])
 def getRestaurants():
     """ Deployed restaurants """
