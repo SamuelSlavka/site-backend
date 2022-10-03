@@ -69,19 +69,21 @@ def fixtures():
     file = open('fixtures.json')
     data = json.load(file)
     for restaurant in data["restaurants"]:
-        rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
-                           "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
-        db.session.add(rest)
-    db.session.commit()
+        old = Restaurants.query.where(Restaurants.restaurant_endpoint == restaurant["restaurant_endpoint"]).all()
+        if(not old):
+            rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
+                            "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
+            db.session.add(rest)
+            db.session.commit()
     
-    retaurants = Restaurants.query.all()
-    if(retaurants):
-        restId = retaurants[0].id
+    lunches = Lunches.query.all()
+    restaurants = Restaurants.query.all()
+    if(not lunches and restaurants):
+        restId = restaurants[0].id
         for lunch in data["lunches"]:
             rest = Lunches(restaurant_id=restId, value=lunch["value"])
             db.session.add(rest)
-        
-        db.session.commit()
+            db.session.commit()
     return 'Ok'
 
 

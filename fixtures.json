@@ -28,22 +28,13 @@
   ],
   "lunches": [
     {
-      "value": {
-        "1": "first",
-        "2": "second"
-      }
+      "value": ["first", "second", "third", "fourth", "fifth", "sixth"]
     },
     {
-      "value": {
-        "3": "trd",
-        "4": "frth"
-      }
+      "value": ["trd", "frth","fifth", "sixth", "seven"]
     },
     {
-      "value": {
-        "3": "trd",
-        "4": "frth"
-      }
+      "value": ["trd", "frth"]
     }
   ]
 }
