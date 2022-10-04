@@ -5,6 +5,7 @@ import flask
 from flask_cors import CORS, cross_origin
 from flask import Flask, request, render_template, url_for, jsonify, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
+from lunch_utils import getLunch
 
 app = Flask(__name__)
 app.debug = True
@@ -53,9 +54,7 @@ class Lunches(db.Model):
             'restaurant_id': self.restaurant_id,
             'value': self.value
         }
-
-db.create_all()
-
+    
 @app.route('/')
 @app.route('/api/')
 def home():
@@ -87,22 +86,30 @@ def fixtures():
     return 'Ok'
 
 
-@app.route('/api/restaurants', methods=['GET'])
+@app.route('/api/all_restaurants', methods=['GET'])
 @cross_origin()
-def getRestaurants():
-    """ Returns restaurants """
+def getAllRestaurants():
+    """ Returns all restaurants """
     restaurants = Restaurants.query.all()
     result = []
     for restaurant in restaurants:
         result.append(restaurant.serialized)
     return result, 200
 
+@app.route('/api/all_lunches', methods=['GET'])
+@cross_origin()
+def getAllLunches():
+    """ Returns all lunches """
+    lunches = Lunches.query.all()
+    result = []
+    for res in lunches:
+        result.append(res.serialized)
+    return result, 200
 
 @app.route('/api/lunches', methods=['POST'])
 @cross_origin()
 def getLunches():
     """ Returns lunches by ids """
-    # Lunches.query.
     req = flask.request.get_json(force=True)
     restaurantIds = req.get('restaurantIds', None)
     sqlRestaurntIds = tuple(restaurantIds)
@@ -112,6 +119,22 @@ def getLunches():
         result.append(res.serialized)
     return result, 200
 
+@app.route('/api/update', methods=['GET'])
+@cross_origin()
+def updateLunches():
+    restaurants = Restaurants.query.all()
+    db.session.query(Lunches).delete()
+    db.session.commit()
+    for restaurant in restaurants:
+        lunch = getLunch(restaurant.restaurant_name, restaurant.restaurant_endpoint)
+        newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
+        db.session.add(newLunch)
+        db.session.commit()
+    return 'Ok'
+    
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
     app.run(debug=True, host="0.0.0.0", port=5000)

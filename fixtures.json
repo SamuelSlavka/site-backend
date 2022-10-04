@@ -29,12 +29,6 @@
   "lunches": [
     {
       "value": ["first", "second", "third", "fourth", "fifth", "sixth"]
-    },
-    {
-      "value": ["trd", "frth","fifth", "sixth", "seven"]
-    },
-    {
-      "value": ["trd", "frth"]
     }
   ]
 }
