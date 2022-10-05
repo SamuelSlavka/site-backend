@@ -21,7 +21,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@172
 
 db = SQLAlchemy(app)
 db.init_app(app)
-
+with app.app_context():
+        print('creating db')
+        db.create_all() 
+        print('created')
 # flask config
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -146,8 +149,5 @@ def updateLunches():
     return 'Ok'
     
 
-if __name__ == "__main__":
-    with app.app_context():
-            print('creating db')
-            db.create_all()    
+if __name__ == "__main__":   
     app.run(debug=True, host="0.0.0.0", port=5000)
