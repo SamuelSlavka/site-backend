@@ -10,7 +10,6 @@ from lunch_utils import getLunch
 app = Flask(__name__)
 app.debug = True
 
-
 # db config
 username = "postgres"
 password = "postgres"
@@ -19,15 +18,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "postgres"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@172.17.0.1:5432/{dbname}"
 
-db = SQLAlchemy(app)
-db.init_app(app)
-# with app.app_context():
-#         print('creating db')
-db.create_all() 
-        # print('created')
 # flask config
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+db = SQLAlchemy(app)
 
 # Create A Models For Db
 class Restaurants(db.Model):
@@ -149,5 +144,6 @@ def updateLunches():
     return 'Ok'
     
 
-if __name__ == "__main__":   
+if __name__ == "__main__":
+    db.create_all() 
     app.run(debug=True, host="0.0.0.0", port=5000)
