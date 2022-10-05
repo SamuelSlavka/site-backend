@@ -1,3 +1,7 @@
-# HEIOUUUuu
+# Server
+REST API server in Flask with PostgreSQL db using sqlalchemy.
 
-# python app.py
+### `pip3 install -r requirements.txt`
+
+### `python3 app.py`
+
