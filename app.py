@@ -10,6 +10,7 @@ from lunch_utils import getLunch
 app = Flask(__name__)
 app.debug = True
 
+
 # db config
 username = "postgres"
 password = "postgres"
@@ -17,8 +18,9 @@ dbname = "postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "postgres"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@172.17.0.1:5432/{dbname}"
-db = SQLAlchemy(app)
 
+db = SQLAlchemy(app)
+db.init_app(app)
 # flask config
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -30,6 +32,11 @@ class Restaurants(db.Model):
     restaurant_name = db.Column(db.String())
     restaurant_endpoint = db.Column(db.String())
     restaurant_description = db.Column(db.String())
+
+    def __init__(self, restaurant_name, restaurant_endpoint, restaurant_description):
+        self.restaurant_name = restaurant_name
+        self.restaurant_endpoint = restaurant_endpoint
+        self.restaurant_description = restaurant_description
 
     @property
     def serialized(self):
@@ -47,6 +54,10 @@ class Lunches(db.Model):
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurant.id"))
     value = db.Column(db.JSON)
 
+    def __init__(self, restaurant_id, value):
+        self.restaurant_id = restaurant_id
+        self.value = value
+        
     @property
     def serialized(self):
         return {
@@ -126,6 +137,7 @@ def updateLunches():
     db.session.query(Lunches).delete()
     db.session.commit()
     for restaurant in restaurants:
+        print(restaurant.restaurant_name)
         lunch = getLunch(restaurant.restaurant_name, restaurant.restaurant_endpoint)
         newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
         db.session.add(newLunch)
@@ -135,6 +147,5 @@ def updateLunches():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-
+            db.create_all()    
     app.run(debug=True, host="0.0.0.0", port=5000)

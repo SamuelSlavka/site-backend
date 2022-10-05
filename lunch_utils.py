@@ -54,19 +54,18 @@ def getOmega(URL):
   page = requests.get(URL)
   soup = BeautifulSoup(page.content, "html.parser")
   mainPage = soup.find(id="hlavni_oblast")
-  elements = mainPage.find_all("p")[6:]
-  
+  elements = mainPage.find_all("p")[5:]
   price = elements[-1].text.strip().split()[-2]
-   
-  currentChunk = list(chunks(elements, 5))[today][1:]
+  
+  currentChunk = list(chunks(elements, 6))[today][1:]
   results = []
   for index, chunk in enumerate(currentChunk):
     if(index == 0):
       results.append({"text": chunk.text.strip(), "price": ''})
-    if(index != len(currentChunk) + 1 and index != 0):
+    if(index != (len(currentChunk) - 1) and index != 0):
       results.append({"text": chunk.text.strip(), "price": price})
   
-  last = currentChunk[len(currentChunk)-2].text.strip()
+  last = currentChunk[len(currentChunk)-1].text.strip()
   lastText = " ".join(last.split()[:-2])
   lastPrice = last.split()[-2]
   results.append({"text": lastText, "price": lastPrice})
@@ -110,6 +109,6 @@ def getLunch(restaurant_name, URL):
   if (restaurant_name == 'basilico'):
     return getBasilico(URL)
 
-# if __name__ == "__main__":
-  # print(getOmega('http://www.krusovickaomega.cz/cz/tydenni-menu'))
+if __name__ == "__main__":
+  print(getOmega('http://www.krusovickaomega.cz/cz/tydenni-menu'))
   # print(getTusto('https://titanium.tusto.cz/home/#menu'))
