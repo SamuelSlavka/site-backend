@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from lunch_utils import getLunch
 
 app = Flask(__name__)
+app.app_context().push()
 app.debug = True
 
 # db config
@@ -23,8 +24,9 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 db = SQLAlchemy(app)
-
 # Create A Models For Db
+
+
 class Restaurants(db.Model):
     __tablename__ = 'restaurant'
     id = db.Column(db.Integer, primary_key=True)
@@ -56,7 +58,7 @@ class Lunches(db.Model):
     def __init__(self, restaurant_id, value):
         self.restaurant_id = restaurant_id
         self.value = value
-        
+
     @property
     def serialized(self):
         return {
@@ -64,7 +66,11 @@ class Lunches(db.Model):
             'restaurant_id': self.restaurant_id,
             'value': self.value
         }
-    
+
+
+db.create_all()
+
+
 @app.route('/')
 @app.route('/api/')
 def home():
@@ -78,13 +84,14 @@ def fixtures():
     file = open('fixtures.json')
     data = json.load(file)
     for restaurant in data["restaurants"]:
-        old = Restaurants.query.where(Restaurants.restaurant_endpoint == restaurant["restaurant_endpoint"]).all()
+        old = Restaurants.query.where(
+            Restaurants.restaurant_endpoint == restaurant["restaurant_endpoint"]).all()
         if(not old):
             rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
-                            "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
+                "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
             db.session.add(rest)
             db.session.commit()
-    
+
     lunches = Lunches.query.all()
     restaurants = Restaurants.query.all()
     if(not lunches and restaurants):
@@ -106,6 +113,7 @@ def getAllRestaurants():
         result.append(restaurant.serialized)
     return result, 200
 
+
 @app.route('/api/all_lunches', methods=['GET'])
 @cross_origin()
 def getAllLunches():
@@ -116,6 +124,7 @@ def getAllLunches():
         result.append(res.serialized)
     return result, 200
 
+
 @app.route('/api/lunches', methods=['POST'])
 @cross_origin()
 def getLunches():
@@ -123,11 +132,13 @@ def getLunches():
     req = flask.request.get_json(force=True)
     restaurantIds = req.get('restaurantIds', None)
     sqlRestaurntIds = tuple(restaurantIds)
-    queryResults = db.session.query(Lunches).filter(Lunches.restaurant_id.in_(sqlRestaurntIds)).all()
+    queryResults = db.session.query(Lunches).filter(
+        Lunches.restaurant_id.in_(sqlRestaurntIds)).all()
     result = []
     for res in queryResults:
         result.append(res.serialized)
     return result, 200
+
 
 @app.route('/api/update', methods=['GET'])
 @cross_origin()
@@ -137,13 +148,13 @@ def updateLunches():
     db.session.commit()
     for restaurant in restaurants:
         print(restaurant.restaurant_name)
-        lunch = getLunch(restaurant.restaurant_name, restaurant.restaurant_endpoint)
+        lunch = getLunch(restaurant.restaurant_name,
+                         restaurant.restaurant_endpoint)
         newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
         db.session.add(newLunch)
         db.session.commit()
     return 'Ok'
-    
+
 
 if __name__ == "__main__":
-    db.create_all() 
     app.run(debug=True, host="0.0.0.0", port=5000)
