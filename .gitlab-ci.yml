@@ -24,6 +24,7 @@ docker-build:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - cp ./prod/Dockerfile ./Dockerfile
     - docker buildx create --driver docker-container --use
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64/v8 --pull -t registry.gitlab.com/samuelslavka/site-backend .
@@ -64,5 +65,3 @@ deploy:
     - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker system prune"
     - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose pull"
     - ssh -4 -o StrictHostKeyChecking=no -i key.pem rpi@$PROD_SERVER_IP "docker-compose up -d"
-
-
