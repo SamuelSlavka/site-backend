@@ -78,31 +78,6 @@ def home():
     return 'Hello there!'
 
 
-@app.route('/api/fixtures')
-def fixtures():
-    """ loads fixtures into db """
-    file = open('fixtures.json')
-    data = json.load(file)
-    for restaurant in data["restaurants"]:
-        old = Restaurants.query.where(
-            Restaurants.restaurant_endpoint == restaurant["restaurant_endpoint"]).all()
-        if(not old):
-            rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
-                "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
-            db.session.add(rest)
-            db.session.commit()
-
-    lunches = Lunches.query.all()
-    restaurants = Restaurants.query.all()
-    if(not lunches and restaurants):
-        restId = restaurants[0].id
-        for lunch in data["lunches"]:
-            rest = Lunches(restaurant_id=restId, value=lunch["value"])
-            db.session.add(rest)
-            db.session.commit()
-    return 'Ok'
-
-
 @app.route('/api/all_restaurants', methods=['GET'])
 @cross_origin()
 def getAllRestaurants():
@@ -140,10 +115,37 @@ def getLunches():
     return result, 200
 
 
+@app.route('/api/fixtures')
+def fixtures():
+    """ loads fixtures into db """
+    file = open('fixtures.json')
+    data = json.load(file)
+    for restaurant in data["restaurants"]:
+        old = Restaurants.query.where(
+            Restaurants.restaurant_endpoint == restaurant["restaurant_endpoint"]).all()
+        if(not old):
+            rest = Restaurants(restaurant_name=restaurant["restaurant_name"], restaurant_endpoint=restaurant[
+                "restaurant_endpoint"], restaurant_description=restaurant["restaurant_description"])
+            db.session.add(rest)
+            db.session.commit()
+
+    lunches = Lunches.query.all()
+    restaurants = Restaurants.query.all()
+    if(not lunches and restaurants):
+        restId = restaurants[0].id
+        for lunch in data["lunches"]:
+            rest = Lunches(restaurant_id=restId, value=lunch["value"])
+            db.session.add(rest)
+            db.session.commit()
+    return 'Ok'
+
+
 @app.route('/api/update', methods=['GET'])
 @cross_origin()
 def updateLunches():
-    restaurants = Restaurants.query.all()
+    if(db):
+        print('db exists')
+    restaurants = db.session.query(Restaurants).all()
     db.session.query(Lunches).delete()
     db.session.commit()
     for restaurant in restaurants:
