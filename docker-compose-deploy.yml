@@ -3,7 +3,9 @@ services:
   backend:  
     container_name: backend.app
     image: ${IMAGE_APP_TAG}
-    build: .
+    build:
+      context: .
+      dockerfile: prod/Dockerfile
     restart: unless-stopped
     ports: 
       - '5000:5000'

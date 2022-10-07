@@ -2,17 +2,18 @@ version: '3.4'
 services:
   backend:  
     container_name: backend.app
-    image: ${IMAGE_APP_TAG}
-    build: .
+    build: 
+      context: .
+      dockerfile: dev/Dockerfile
     restart: unless-stopped
     ports: 
       - '5000:5000'
-    # volumes:
-    #   - .:/app
+    volumes:
+      - .:/app
     env_file:
       - .env
     depends_on:
-      - db
+      - adminer
 
   db:
     container_name: backend.db

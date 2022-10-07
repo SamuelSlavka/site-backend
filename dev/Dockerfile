@@ -6,6 +6,4 @@ RUN pip3 install -r requirements.txt
 COPY . /app
 
 # local env
-# CMD [ "python3", "app.py" ]
-# deploy env
-CMD gunicorn app:app -b 0.0.0.0:5000
+CMD [ "python3", "app.py" ]
