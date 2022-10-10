@@ -143,11 +143,12 @@ def fixtures():
 @app.route('/api/update', methods=['GET'])
 @cross_origin()
 def updateLunches():
-    if(db):
-        print('db exists')
     restaurants = db.session.query(Restaurants).all()
-    db.session.query(Lunches).delete()
-    db.session.commit()
+    try:
+        num_rows_deleted = db.session.query(Lunches).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
     for restaurant in restaurants:
         print(restaurant.restaurant_name)
         lunch = getLunch(restaurant.restaurant_name,
@@ -155,7 +156,7 @@ def updateLunches():
         newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
         db.session.add(newLunch)
         db.session.commit()
-    return 'Ok'
+    return {'deleted': num_rows_deleted, 'restaurants': len(restaurants)}
 
 
 if __name__ == "__main__":
