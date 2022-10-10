@@ -16,9 +16,12 @@ def chunks(lst, n):
 # https://pizzeriebasilico.cz/tydenni-menu/
 
 #Monday is 0 and Sunday is 6
-today = date.today().weekday()
-if(today>4):
-  today = 0
+
+def getToday():
+  today = date.today().weekday()
+  if(today>4):
+    today = 0
+  return today
 
 def getTusto(URL):
   page = requests.get(URL)
@@ -40,7 +43,7 @@ def getPokhara(URL):
   page = requests.get(URL)
   soup = BeautifulSoup(page.content, "html.parser")
   elements = soup.find_all("p")[6:]
-  currentChunk = list(chunks(elements, 8))[today][1:]
+  currentChunk = list(chunks(elements, 8))[getToday()][1:]
   results = []
   for element in currentChunk:
     elementContent = element.text.strip()
@@ -57,7 +60,7 @@ def getOmega(URL):
   elements = mainPage.find_all("p")[5:]
   price = elements[-1].text.strip().split()[-2]
   
-  currentChunk = list(chunks(elements, 6))[today][1:]
+  currentChunk = list(chunks(elements, 6))[getToday()][1:]
   results = []
   for index, chunk in enumerate(currentChunk):
     if(index == 0):
@@ -89,7 +92,7 @@ def getBasilico(URL):
   itemChunks = list(chunks(tableItems[10:], 7))
   allChunks = ([tableItems[2:9]] + itemChunks)
   result = []
-  for chunk in allChunks[today][:-1]:
+  for chunk in allChunks[getToday()][:-1]:
     text = chunk.text.strip()
     splitText = text.split('\n')
     if(len(splitText) > 1 and splitText[0]):

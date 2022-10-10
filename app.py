@@ -150,7 +150,6 @@ def updateLunches():
     except:
         db.session.rollback()
     for restaurant in restaurants:
-        print(restaurant.restaurant_name)
         lunch = getLunch(restaurant.restaurant_name,
                          restaurant.restaurant_endpoint)
         newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
