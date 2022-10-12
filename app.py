@@ -5,7 +5,7 @@ import flask
 from flask_cors import CORS, cross_origin
 from flask import Flask, request, render_template, url_for, jsonify, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
-from lunch_utils import getLunch
+from lunch_utils import getLunch, getToday
 
 app = Flask(__name__)
 app.app_context().push()
@@ -69,7 +69,6 @@ class Lunches(db.Model):
 
 
 db.create_all()
-
 
 @app.route('/')
 @app.route('/api/')
@@ -155,7 +154,7 @@ def updateLunches():
         newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
         db.session.add(newLunch)
         db.session.commit()
-    return {'deleted': num_rows_deleted, 'restaurants': len(restaurants)}
+    return {'deleted': num_rows_deleted, 'restaurants': len(restaurants), 'day': getToday()}
 
 
 if __name__ == "__main__":
