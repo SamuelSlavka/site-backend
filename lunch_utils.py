@@ -47,9 +47,11 @@ def getPokhara(URL):
   results = []
   for element in currentChunk:
     elementContent = element.text.strip()
-    text = " ".join(elementContent.split()[:-1])
-    price = elementContent.split()[-1]
-    results.append({"text": text, "price": price})
+    print(elementContent)
+    if(elementContent.split()):
+      text = " ".join(elementContent.split()[:-1])
+      price = elementContent.split()[-1]
+      results.append({"text": text, "price": price})
   return results
 
 
@@ -113,5 +115,4 @@ def getLunch(restaurant_name, URL):
     return getBasilico(URL)
 
 if __name__ == "__main__":
-  print(getOmega('http://www.krusovickaomega.cz/cz/tydenni-menu'))
-  # print(getTusto('https://titanium.tusto.cz/home/#menu'))
+  print(getPokhara('https://www.pokhara.cz/'))
