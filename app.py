@@ -149,11 +149,14 @@ def updateLunches():
     except:
         db.session.rollback()
     for restaurant in restaurants:
-        lunch = getLunch(restaurant.restaurant_name,
-                         restaurant.restaurant_endpoint)
-        newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
-        db.session.add(newLunch)
-        db.session.commit()
+        try:
+            lunch = getLunch(restaurant.restaurant_name,
+                            restaurant.restaurant_endpoint)
+            newLunch = Lunches(restaurant_id=restaurant.id, value=lunch)
+            db.session.add(newLunch)
+            db.session.commit()
+        except:
+            db.session.rollback()
     return {'deleted': num_rows_deleted, 'restaurants': len(restaurants), 'day': getToday()}
 
 
