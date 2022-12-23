@@ -20,14 +20,6 @@ SSH_CONFIG: [
   ProxyCommand cloudflared access ssh --hostname %h
 ]
 ```
-
-### Project dev execution
-
-#### `pip3 install -r requirements.txt`
-
-#### `python3 app.py`
-
-
 ### Project prod execution
 Building the project:
 #### `docker-compose build`

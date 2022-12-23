@@ -9,3 +9,4 @@ flask_script
 flask_migrate
 requests
 beautifulsoup4
+flask-swagger-ui
