@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    restart: 'unless-stopped'
+    hostname: 'postgres'
+    environment:
+      - 'POSTGRES_DB=db'
+      - 'POSTGRES_PASSWORD=admin'
+      - 'POSTGRES_USER=admin'
+    ports:
+      - '5432:5432'

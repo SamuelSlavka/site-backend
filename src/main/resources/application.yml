@@ -1,0 +1,61 @@
+server:
+    error:
+        include-message: always
+
+spring:
+    profiles:
+        active:
+            mem
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include:
+                    "*"
+                exclude:
+                    "env,beans"
+---
+spring:
+    config:
+        activate:
+            on-profile: mem
+    datasource:
+        driverClassName: org.h2.Driver
+        password: admin
+        url: jdbc:h2:mem:dcbapp
+        username: admin
+    h2:
+        console:
+            enabled: true
+    jpa:
+        database-platform: org.hibernate.dialect.H2Dialect
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+
+springdoc:
+    swagger-ui:
+        path: /api/v1/docs
+
+---
+spring:
+    config:
+        activate:
+            on-profile: psql
+    datasource:
+        password: admin
+        url: jdbc:postgresql://0.0.0.0:5432/db
+        username: admin
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                format_sql: true
+        show-sql: true
+
+springdoc:
+    swagger-ui:
+        path: /api/v1/docs
