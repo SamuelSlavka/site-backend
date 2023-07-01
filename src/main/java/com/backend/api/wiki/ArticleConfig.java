@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -31,6 +32,7 @@ public class ArticleConfig  implements WebMvcConfigurer {
         resolver.setFallbackPageable(PageRequest.of(0, 10, Sort.by("name").ascending()));
         resolvers.add(resolver);
     }
+
 
     @Bean
     public PageableHandlerMethodArgumentResolverCustomizer customize() {

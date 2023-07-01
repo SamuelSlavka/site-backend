@@ -1,61 +1,85 @@
 server:
-    error:
-        include-message: always
+  error:
+    include-message: always
+  port: 8090
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 spring:
-    profiles:
-        active:
-            mem
+  profiles:
+    active:
+      mem
+  application:
+    name: site-backend
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URL:http://localhost:8080/realms/site}
+  level:
+    org.springframework.security: DEBUG
+
+  mvc:
+    dispatch-options-request: true
+
+logging:
+  level:
+    org:
+      keycloak: DEBUG
 
 management:
-    endpoints:
-        web:
-            exposure:
-                include:
-                    "*"
-                exclude:
-                    "env,beans"
----
-spring:
-    config:
-        activate:
-            on-profile: mem
-    datasource:
-        driverClassName: org.h2.Driver
-        password: admin
-        url: jdbc:h2:mem:dcbapp
-        username: admin
-    h2:
-        console:
-            enabled: true
-    jpa:
-        database-platform: org.hibernate.dialect.H2Dialect
-        hibernate:
-            ddl-auto: update
-        show-sql: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          "*"
+        exclude:
+          "env,beans"
 
-springdoc:
-    swagger-ui:
-        path: /api/v1/docs
 
 ---
 spring:
-    config:
-        activate:
-            on-profile: psql
-    datasource:
-        password: admin
-        url: jdbc:postgresql://0.0.0.0:5432/db
-        username: admin
-    jpa:
-        hibernate:
-            ddl-auto: create-drop
-        properties:
-            hibernate:
-                dialect: org.hibernate.dialect.PostgreSQLDialect
-                format_sql: true
-        show-sql: true
+  config:
+    activate:
+      on-profile: mem
+  datasource:
+    driverClassName: org.h2.Driver
+    password: admin
+    url: jdbc:h2:mem:dcbapp
+    username: admin
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 springdoc:
-    swagger-ui:
-        path: /api/v1/docs
+  swagger-ui:
+    path: /api/v1/docs
+
+---
+spring:
+  config:
+    activate:
+      on-profile: psql
+  datasource:
+    password: admin
+    url: jdbc:postgresql://0.0.0.0:5432/db
+    username: admin
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+springdoc:
+  swagger-ui:
+    path: /api/v1/docs
