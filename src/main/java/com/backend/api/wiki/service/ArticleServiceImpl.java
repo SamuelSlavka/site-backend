@@ -1,9 +1,9 @@
 package com.backend.api.wiki.service;
 
 import com.backend.api.wiki.entity.Article;
-import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.ArticleCreationDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +14,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
 public class ArticleServiceImpl implements ArticleService {
 
     private final ArticleRepository articleRepository;
+
     @Autowired
     public ArticleServiceImpl(ArticleRepository articleRepository) {
         this.articleRepository = articleRepository;
@@ -27,12 +29,12 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<Article> getArticles(Integer page) {
-        Pageable sortedPage = PageRequest.of(page,10, Sort.by("title"));
+        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
         return articleRepository.findByDeletedFalse(sortedPage);
     }
 
     @Override
-    public Article getArticle(Long id) throws NotFoundException {
+    public Article getArticle(String id) throws NotFoundException {
         return articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
     }
 
@@ -47,44 +49,36 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public Article createArticle(String title) {
-        Article localArticle = new Article();
+    public Article createArticle(String title, String userId) {
+        Section topSection = Section.builder().sectionOrder(0).depth(0).deleted(false).build();
+        Article localArticle = Article.builder().title(title).section(topSection).createdAt(LocalDateTime.now()).deleted(false).createdBy(userId).isPrivate(false).build();
+
         return articleRepository.save(localArticle);
     }
 
     @Override
-    @Transactional
-    public Article deleteArticle(Long id) throws NotFoundException {
-        Article article = articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
-        article.setDeleted(true);
+    public Article editArticle(String id, ArticleCreationDto data) throws NotFoundException {
+        Article article = articleRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
+        if (Objects.nonNull(data.getTitle())) {
+            article.setTitle(data.getTitle());
+        }
+        articleRepository.save(article);
+        return article;
+    }
 
-        article.setDeletedAt(LocalDateTime.now());
-        return articleRepository.save(article);
+
+    @Override
+    @Transactional
+    public void deleteArticle(String id) throws NotFoundException {
+        articleRepository.deleteById(id);
     }
 
     @Override
     @Transactional
-    public Article restoreArticle(Long id) throws NotFoundException {
+    public Article restoreArticle(String id) throws NotFoundException {
         Article article = articleRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
         article.setDeleted(false);
-        article.setDeletedAt(null);
-        return articleRepository.save(article);
-    }
-
-    @Override
-    @Transactional
-    public Article addSecionArticle(long id, Revision revision) throws NotFoundException {
-        Article articleDB = articleRepository.findById(id).orElseThrow(() -> new NotFoundException("Article not found"));
-
-        Revision newRevision = Revision.builder().title(revision.getTitle()).text(revision.getText()).build();
-        Section newSection = Section.builder().article(articleDB).build();
-
-        List<Section> sectionsDB = articleDB.getSections();
-
-        newSection.setRevisions(List.of(newRevision));
-        sectionsDB.add(newSection);
-        articleDB.setSections(sectionsDB);
-
-        return articleRepository.save(articleDB);
+        articleRepository.save(article);
+        return article;
     }
 }

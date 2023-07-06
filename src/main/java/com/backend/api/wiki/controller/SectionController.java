@@ -1,6 +1,5 @@
 package com.backend.api.wiki.controller;
 
-import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.service.SectionService;
@@ -28,22 +27,18 @@ public class SectionController {
     }
 
     @PostMapping
-    public Section createSection(Long articleId, Revision revision) throws NotFoundException {
-        return sectionService.createSection(articleId, revision);
+    public Section createSection(String articleId, String text) throws NotFoundException {
+        return sectionService.createSection(articleId, text);
     }
 
     @GetMapping(path = "/id/{sectionId}")
-    public Section getSection(@PathVariable("sectionId") Long id) throws NotFoundException {
+    public Section getSection(@PathVariable("sectionId") String id) throws NotFoundException {
         return sectionService.getSection(id);
     }
 
     @DeleteMapping(path = "/{sectionId}")
-    public void deleteSection(@PathVariable("sectionId") Long id) throws NotFoundException {
+    public void deleteSection(@PathVariable("sectionId") String id) throws NotFoundException {
         sectionService.deleteSection(id);
     }
 
-    @PostMapping(path = "/restore/{sectionId}")
-    public void restoreSection(@PathVariable("sectionId") Long id) throws NotFoundException {
-        sectionService.restoreSection(id);
-    }
 }

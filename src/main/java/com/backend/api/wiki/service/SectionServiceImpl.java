@@ -1,6 +1,5 @@
 package com.backend.api.wiki.service;
 
-import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotFoundException;
@@ -16,10 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class SectionServiceImpl implements  SectionService {
+public class SectionServiceImpl implements SectionService {
 
     private final ArticleRepository articleRepository;
     private final SectionRepository sectionRepository;
+
     @Autowired
     public SectionServiceImpl(ArticleRepository articleRepository, SectionRepository sectionRepository) {
         this.articleRepository = articleRepository;
@@ -29,35 +29,35 @@ public class SectionServiceImpl implements  SectionService {
 
     @Override
     public List<Section> getSections(Integer page) {
-        Pageable sortedPage = PageRequest.of(page,10, Sort.by("section_order"));
+        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("section_order"));
         return sectionRepository.findByDeletedFalse(sortedPage);
     }
 
     @Override
-    public Section getSection(Long id) throws NotFoundException {
+    public Section getSection(String id) throws NotFoundException {
         return sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
     }
 
     @Override
-    public Section createSection(Long articleId, Revision revision) throws NotFoundException {
-        Article article = articleRepository.findByIdAndDeletedFalse(articleId).orElseThrow(() -> new NotFoundException("Article not found"));
-        List<Section> sections = article.getSections();
-        return Section.builder().article(article).revisions(List.of(revision)).build();
+    public Section createSection(String sectionId, String text) throws NotFoundException {
+        Section superSection = sectionRepository.findByIdAndDeletedFalse(sectionId).orElseThrow(() -> new NotFoundException("Section not found"));
+        Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
+        List<Section> sections = superSection.getSubsections();
+        Section newSection = Section.builder().latestRevision(revision).latestRevision(revision).revisions(List.of(revision)).build();
+        sections.add(newSection);
+        superSection.setSubsections(sections);
+        return newSection;
     }
 
     @Override
-    public Section deleteSection(Long id) throws NotFoundException {
-        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
-        section.setDeleted(true);
-        section.setDeletedAt(LocalDateTime.now());
-        return sectionRepository.save(section);
+    public void deleteSection(String id) throws NotFoundException {
+        sectionRepository.deleteById(id);
     }
 
     @Override
-    public Section restoreSection(Long id) throws NotFoundException {
+    public Section restoreSection(String id) throws NotFoundException {
         Section section = sectionRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
         section.setDeleted(false);
-        section.setDeletedAt(null);
         return sectionRepository.save(section);
     }
 }

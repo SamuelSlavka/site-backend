@@ -5,6 +5,8 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,17 +15,27 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @Builder
+@Where(clause = "deleted = false and is_private = false")
+@SQLDelete(sql = "UPDATE Section SET deleted = TRUE WHERE id = ?")
 @Table(name = "article")
 public class Article {
-
     @Id
-    @SequenceGenerator(name = "article_sequence", sequenceName = "article_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "article_sequence")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     private String title;
 
     private Boolean deleted = Boolean.FALSE;
+
+    @Column(name = "is_private")
+    private Boolean isPrivate = Boolean.FALSE;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @PastOrPresent
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
@@ -32,18 +44,15 @@ public class Article {
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private List<Category> categories;
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<Section> sections;
-
-    @PastOrPresent
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "section_id", referencedColumnName = "id")
+    private Section section;
 
     public Article() {
         deleted = Boolean.FALSE;
     }
 
-    public Article(Long id, String title) {
+    public Article(String id, String title) {
         this.id = id;
         this.title = title;
         this.deleted = Boolean.FALSE;
@@ -54,7 +63,6 @@ public class Article {
         return "Article{" +
                 "id=" + id +
                 ", deleted=" + deleted +
-                ", deletedAt=" + deletedAt +
                 '}';
     }
 }

@@ -11,8 +11,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,8 +26,7 @@ class ArticleServiceTest {
     @BeforeEach
     void setUp() {
         Article article = Article.builder()
-                .id(0L)
-                .deletedAt(LocalDate.now().atStartOfDay())
+                .id("some-uid-two")
                 .title("title")
                 .deleted(false)
                 .build();

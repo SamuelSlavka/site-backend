@@ -1,25 +1,26 @@
 package com.backend.api.wiki.service;
 
 import com.backend.api.wiki.entity.Article;
-import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.ArticleCreationDto;
 
 import java.util.List;
 
 
 public interface ArticleService {
-    public List<Article> getArticles(Integer page);
+    List<Article> getArticles(Integer page);
 
-    public Article getArticle(Long id) throws NotFoundException;
-    public Article getArticleByTitle(String title) throws NotFoundException;
+    Article getArticle(String id) throws NotFoundException;
 
-    public List<Article> getDeletedArticles();
+    Article getArticleByTitle(String title) throws NotFoundException;
 
-    public Article createArticle(String title);
+    List<Article> getDeletedArticles();
 
-    public Article deleteArticle(Long id) throws NotFoundException;
+    Article createArticle(String title, String userId);
 
-    public Article restoreArticle(Long id) throws NotFoundException;
+    void deleteArticle(String id) throws NotFoundException;
 
-    public Article addSecionArticle(long id, Revision revision) throws NotFoundException;
+    Article restoreArticle(String id) throws NotFoundException;
+
+    Article editArticle(String id, ArticleCreationDto data) throws NotFoundException;
 }

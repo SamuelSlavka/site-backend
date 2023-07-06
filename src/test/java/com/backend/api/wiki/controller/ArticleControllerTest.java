@@ -4,24 +4,19 @@ import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.service.ArticleService;
-import com.backend.api.wiki.service.ArticleServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,8 +39,7 @@ class ArticleControllerTest {
     @BeforeEach
     void setUp() {
         article = Article.builder()
-                .id(1L)
-                .deletedAt(LocalDate.now().atStartOfDay())
+                .id("some-uid")
                 .title("title")
                 .deleted(false)
                 .build();
@@ -53,19 +47,19 @@ class ArticleControllerTest {
 
     @Test
     void createArticle() throws Exception {
-        Mockito.when(articleService.createArticle("title")).thenReturn(article);
+        Mockito.when(articleService.createArticle("title", "user-id")).thenReturn(article);
 
         mockMvc.perform(post("/api/v1/articles")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\": 0, \"title\": \"title\",\"date\": \"2023-06-24\", \"deleted\": true, \"deletedAt\": \"2023-06-24T09:23:15.885Z\"}"))
+                        .content("{\"id\": \"some-uid\", \"title\": \"title\",\"date\": \"2023-06-24\", \"deleted\": true}"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void getArticle() throws Exception {
-        Mockito.when(articleService.getArticle(1L)).thenReturn(article);
+        Mockito.when(articleService.getArticle("some-uid")).thenReturn(article);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles/id/1")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles/id/some-uid")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value((article.getTitle())));

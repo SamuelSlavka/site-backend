@@ -3,45 +3,41 @@ package com.backend.api.wiki.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Data
 @AllArgsConstructor
 @Builder
+@Where(clause = "deleted = false")
+@SQLDelete(sql = "UPDATE Section SET deleted = TRUE WHERE id = ?")
 @Table(name = "section")
 public class Section {
 
-    public Section() {
-        this.deleted = false;
-    }
-
     @Id
-    @SequenceGenerator(name = "section_sequence", sequenceName = "section_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "section_sequence")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonIgnore
     private List<Revision> revisions;
 
-    @OneToMany(mappedBy = "supersection")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "revision_id", referencedColumnName = "id")
+    private Revision latestRevision;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "supersection_id", referencedColumnName = "id")
     private List<Section> subsections;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supersection_id", nullable = true)
-    private Section supersection;
-
-    @Positive
+    @Min(0)
     @Column(name = "section_order", nullable = false)
     private Integer sectionOrder = 0;
 
@@ -50,13 +46,9 @@ public class Section {
 
     private Boolean deleted = Boolean.FALSE;
 
-    @PastOrPresent
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="article_id", nullable=false)
-    @JsonIgnore
-    private Article article;
+    public Section() {
+        this.deleted = false;
+    }
 
 }

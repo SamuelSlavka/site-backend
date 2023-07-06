@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,11 +21,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfig {
 
     private final ErrorHandler errorHandler;
+
     @Bean
     protected SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(r -> r.anyRequest().authenticated())
+                .authorizeHttpRequests(r -> r
+                        .requestMatchers(HttpMethod.GET, "/api/v1/articles**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
+                        .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(errorHandler))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(

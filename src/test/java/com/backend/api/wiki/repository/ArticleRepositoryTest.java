@@ -5,19 +5,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import java.time.LocalDate;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @DataJpaTest
 class ArticleRepositoryTest {
@@ -29,7 +27,7 @@ class ArticleRepositoryTest {
     @BeforeEach
     void setUp() {
         Article article = Article.builder()
-                .deletedAt(LocalDate.now().atStartOfDay())
+                .id("some-uid-two")
                 .deleted(false)
                 .build();
 
@@ -40,7 +38,6 @@ class ArticleRepositoryTest {
     @DisplayName("Create a new article")
     public void createArticle() {
         Article article = Article.builder()
-                .deletedAt(LocalDate.now().atStartOfDay())
                 .deleted(false)
                 .build();
 
@@ -50,17 +47,17 @@ class ArticleRepositoryTest {
     @Test
     @DisplayName("Return article based on Id")
     public void returnArticleWithId() {
-        Optional<Article> article = articleRepository.findByIdAndDeletedFalse((0L));
-        assertNotEquals(null, article );
-        article.ifPresent(value -> assertEquals(0L, value.getId() ));
+        Optional<Article> article = articleRepository.findByIdAndDeletedFalse(("some-uid-two"));
+        assertNotEquals(null, article);
+        article.ifPresent(value -> assertEquals("some-uid-two", value.getId()));
     }
 
     @Test
     @DisplayName("Find all with pagination")
     public void findWithPagination() {
-        Pageable firstPage = PageRequest.of(0,3);
-        Pageable secondPage = PageRequest.of(1,2);
-        Pageable sortedPage = PageRequest.of(1,2, Sort.by("title"));
+        Pageable firstPage = PageRequest.of(0, 3);
+        Pageable secondPage = PageRequest.of(1, 2);
+        Pageable sortedPage = PageRequest.of(1, 2, Sort.by("title"));
         List<Article> sorted = articleRepository.findAll(firstPage).getContent();
         articleRepository.findByDeletedFalse(sortedPage);
         Sort sort = Sort.by("title");
