@@ -32,8 +32,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: user/app:latest
-      - name: deploy new image
+          tags: samsla/site-backend:latest
+      - name: Connect
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
