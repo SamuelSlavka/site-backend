@@ -10,7 +10,9 @@ import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -34,8 +36,8 @@ public class Section {
     private Revision latestRevision;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "supersection_id", referencedColumnName = "id")
-    private List<Section> subsections;
+    @JoinColumn(name = "supersection_id")
+    private Set<Section> subsections = new HashSet<>();
 
     @Min(0)
     @Column(name = "section_order", nullable = false)

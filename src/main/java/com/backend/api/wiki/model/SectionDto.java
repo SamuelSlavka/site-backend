@@ -18,4 +18,5 @@ public class SectionDto {
 
     private Integer sectionOrder;
 
+    private Integer depth;
 }

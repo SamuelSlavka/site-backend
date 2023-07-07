@@ -10,7 +10,8 @@ public interface SectionService {
 
     Section getSection(String id) throws NotFoundException;
 
-    Section createSection(String articleId, String text) throws NotFoundException;
+    Section createSubSection(String id, String text) throws NotFoundException;
+    Section createRevision(String id, String text) throws NotFoundException;
 
     void deleteSection(String id) throws NotFoundException;
 

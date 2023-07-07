@@ -12,4 +12,7 @@ public class ArticleListItemDto {
     private String id;
 
     private String title;
+
+    private String superSection;
+
 }

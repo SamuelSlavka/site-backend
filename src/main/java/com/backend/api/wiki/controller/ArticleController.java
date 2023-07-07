@@ -72,7 +72,11 @@ public class ArticleController {
     }
 
     private ArticleListItemDto convertToListItemDto(Article article) {
-        return modelMapper.map(article, ArticleListItemDto.class);
+        ArticleListItemDto artItem = modelMapper.map(article, ArticleListItemDto.class);
+        if (Objects.nonNull(article.getSection())) {
+            artItem.setSuperSection(article.getSection().getId());
+        }
+        return artItem;
     }
 
     private ArticleDto convertToDto(Article article) {

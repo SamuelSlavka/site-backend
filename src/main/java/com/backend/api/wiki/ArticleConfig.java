@@ -20,7 +20,9 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 @ComponentScan(basePackages = "wiki")
@@ -54,10 +56,7 @@ public class ArticleConfig implements WebMvcConfigurer {
             articleRepository.save(tmpArticle3);
 
             Category tmpCategory = Category.builder().deleted(false).categoryName("catName").build();
-            Section tmpSection = Section.builder().deleted(false).sectionOrder(0).depth(0).build();
-            Section tmpSection3 = Section.builder().deleted(false).depth(1).sectionOrder(3).build();
-            Section tmpSection2 = Section.builder().deleted(true).sectionOrder(2).depth(1).build();
-            tmpSection.setSubsections(List.of(tmpSection3, tmpSection2));
+            Section tmpSection = Section.builder().deleted(false).sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
             Revision tmpRevision = Revision.builder().deleted(false).text(
                     """
                             ## Java
@@ -66,6 +65,14 @@ public class ArticleConfig implements WebMvcConfigurer {
                                                         
                             """
             ).build();
+
+            Section tmpSection3 = Section.builder().deleted(false).depth(1).sectionOrder(3).build();
+            Revision tmpRevision2 = Revision.builder().deleted(false).text("rev2").build();
+            Section tmpSection2 = Section.builder().latestRevision(tmpRevision2).revisions(List.of(tmpRevision2)).deleted(true).sectionOrder(2).depth(1).build();
+            Set<Section> subs = tmpSection.getSubsections();
+            subs.addAll(List.of(tmpSection3, tmpSection2));
+            tmpSection.setSubsections(subs);
+
             tmpSection.setRevisions(List.of(tmpRevision));
             tmpSection.setLatestRevision(tmpRevision);
             tmpArticle.setCategories(List.of(tmpCategory));

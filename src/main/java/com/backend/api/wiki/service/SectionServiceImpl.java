@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SectionServiceImpl implements SectionService {
@@ -39,14 +40,27 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public Section createSection(String sectionId, String text) throws NotFoundException {
-        Section superSection = sectionRepository.findByIdAndDeletedFalse(sectionId).orElseThrow(() -> new NotFoundException("Section not found"));
+    public Section createSubSection(String id, String text) throws NotFoundException {
+        Section superSection = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
         Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
-        List<Section> sections = superSection.getSubsections();
-        Section newSection = Section.builder().latestRevision(revision).latestRevision(revision).revisions(List.of(revision)).build();
+        Set<Section> sections = superSection.getSubsections();
+        Section newSection = Section.builder().deleted(false).latestRevision(revision).revisions(List.of(revision)).depth(superSection.getDepth()+1).sectionOrder(sections.size()+1).build();
         sections.add(newSection);
         superSection.setSubsections(sections);
+        sectionRepository.flush();
         return newSection;
+    }
+
+    @Override
+    public Section createRevision(String id, String text) throws NotFoundException {
+        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+        Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
+        List<Revision> revisions = section.getRevisions();
+        revisions.add(revision);
+        section.setRevisions(revisions);
+        section.setLatestRevision(revision);
+        sectionRepository.flush();
+        return section;
     }
 
     @Override
