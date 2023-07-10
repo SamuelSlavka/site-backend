@@ -14,8 +14,8 @@ jobs:
       - name: Set up JDK 20
         uses: actions/setup-java@v2
         with:
-          java-version: '20'
-          distribution: 'adopt'
+          java-version: "20"
+          distribution: "adopt"
 
       - name: mvn -B clean package -D skipTests
         run: mvn -B clean package -D skipTests
@@ -47,4 +47,4 @@ jobs:
           script: |
             docker pull samsla/site-backend:latest
             docker rm -f site-backend
-            docker run -d --name site-backend -p 8090:8090  samsla/site-backend
+            docker run -d --name site-backend --network host samsla/site-backend
