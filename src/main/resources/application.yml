@@ -17,7 +17,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: keycloak.sam-sla.net/realms/site
+          issuer-uri: http://localhost:8080/realms/site
   level:
     org.springframework.security: DEBUG
 
