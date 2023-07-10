@@ -9,15 +9,14 @@ server:
 
 spring:
   profiles:
-    active:
-      mem
+    active: mem
   application:
     name: site-backend
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://keycloak.sam-sla.net/realms/site
+          issuer-uri: keycloak.sam-sla.net/realms/site
   level:
     org.springframework.security: DEBUG
 
@@ -33,11 +32,8 @@ management:
   endpoints:
     web:
       exposure:
-        include:
-          "*"
-        exclude:
-          "env,beans"
-
+        include: "*"
+        exclude: "env,beans"
 
 ---
 spring:
