@@ -16,8 +16,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
+          client-id: site-backend
           issuer-uri: https://keycloak.sam-sla.net/realms/site
-          jwk-set-uri: https://keycloak.sam-sla.net/realms/realms/protocol/openid-connect/certs
+          jwk-set-uri: https://keycloak.sam-sla.net/realms/site/protocol/openid-connect/certs
   level:
     org.springframework.security: DEBUG
 
