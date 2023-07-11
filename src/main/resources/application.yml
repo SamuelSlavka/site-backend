@@ -10,6 +10,8 @@ server:
 spring:
   profiles:
     active: mem
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: site-backend
   security:
@@ -17,8 +19,8 @@ spring:
       resourceserver:
         jwt:
           client-id: site-backend
-          issuer-uri: https://keycloak.sam-sla.net/realms/site
-          jwk-set-uri: https://keycloak.sam-sla.net/realms/site/protocol/openid-connect/certs
+          issuer-uri: ${ISSUER_URI:https://keycloak.sam-sla.net/realms/site}
+          jwk-set-uri: ${JWK_SET_URI:https://keycloak.sam-sla.net/realms/site/protocol/openid-connect/certs}
   level:
     org.springframework.security: DEBUG
 

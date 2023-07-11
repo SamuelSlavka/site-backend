@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @Builder
-@Where(clause = "deleted = false and is_private = false")
+@Where(clause = "deleted = false")
 @SQLDelete(sql = "UPDATE Section SET deleted = TRUE WHERE id = ?")
 @Table(name = "article")
 public class Article {

@@ -30,10 +30,17 @@ public class ArticleController {
 
     @GetMapping
     public List<ArticleListItemDto> getArticles(@RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
+        this.logger.info("called ");
+        List<Article>  articles;
         if (Objects.nonNull(principal)) {
-            this.logger.error(principal.getSubject());
+            String userId = principal.getSubject();
+            this.logger.info("User "+ userId);
+            articles = articleService.getUserArticles(page, userId);
+
+        } else {
+            this.logger.info("Unknown user");
+            articles = articleService.getPublicArticles(page);
         }
-        List<Article> articles = articleService.getArticles(page);
         return articles.stream().map(this::convertToListItemDto)
                 .collect(Collectors.toList());
     }
@@ -48,7 +55,7 @@ public class ArticleController {
     public ArticleListItemDto createArticle(@Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) {
         String userId = principal.getSubject();
 
-        return convertToListItemDto(articleService.createArticle(request.getTitle(), userId));
+        return convertToListItemDto(articleService.createArticle(request, userId));
     }
 
     @PutMapping(path = "/{articleId}")

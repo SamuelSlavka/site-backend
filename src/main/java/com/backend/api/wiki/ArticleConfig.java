@@ -49,12 +49,6 @@ public class ArticleConfig implements WebMvcConfigurer {
         return args -> {
             Article tmpArticle = Article.builder().deleted(false).createdAt(LocalDateTime.now().minusHours(1)).isPrivate(false).title("java tbd").build();
 
-            Article tmpArticle2 = Article.builder().deleted(false).createdAt(LocalDateTime.now().minusHours(2)).isPrivate(false).title("angular tbd").build();
-            articleRepository.save(tmpArticle2);
-
-            Article tmpArticle3 = Article.builder().deleted(false).createdAt(LocalDateTime.now()).isPrivate(false).title("ci/cd tbd").build();
-            articleRepository.save(tmpArticle3);
-
             Category tmpCategory = Category.builder().deleted(false).categoryName("catName").build();
             Section tmpSection = Section.builder().deleted(false).sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
             Revision tmpRevision = Revision.builder().deleted(false).text(

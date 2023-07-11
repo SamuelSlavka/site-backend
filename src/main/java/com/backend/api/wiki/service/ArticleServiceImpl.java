@@ -34,6 +34,18 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public List<Article> getPublicArticles(Integer page) {
+        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+        return articleRepository.findByDeletedFalseAndIsPrivateFalse(sortedPage);
+    }
+
+    @Override
+    public List<Article> getUserArticles(Integer page, String userId) {
+        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+        return articleRepository.findAllByCreatedByOrIsPrivateFalse(userId, sortedPage);
+    }
+
+    @Override
     public Article getArticle(String id) throws NotFoundException {
         return articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
     }
@@ -49,9 +61,9 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public Article createArticle(String title, String userId) {
+    public Article createArticle(ArticleCreationDto request, String userId) {
         Section topSection = Section.builder().sectionOrder(0).depth(0).deleted(false).build();
-        Article localArticle = Article.builder().title(title).section(topSection).createdAt(LocalDateTime.now()).deleted(false).createdBy(userId).isPrivate(false).build();
+        Article localArticle = Article.builder().title(request.getTitle()).section(topSection).createdAt(LocalDateTime.now()).deleted(false).createdBy(userId).isPrivate(request.getIsPrivate()).build();
 
         return articleRepository.save(localArticle);
     }
