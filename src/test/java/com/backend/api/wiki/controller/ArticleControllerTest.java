@@ -1,6 +1,7 @@
 package com.backend.api.wiki.controller;
 
 import com.backend.api.wiki.entity.Article;
+import com.backend.api.wiki.model.ArticleCreationDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.service.ArticleService;
@@ -11,14 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
+import static org.mockito.ArgumentMatchers.*;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest(ArticleController.class)
 class ArticleControllerTest {
@@ -36,26 +40,31 @@ class ArticleControllerTest {
 
     private Article article;
 
+
     @BeforeEach
     void setUp() {
         article = Article.builder()
                 .id("some-uid")
                 .title("title")
+                .isPrivate(false)
                 .deleted(false)
                 .build();
     }
 
     @Test
+    @WithMockUser
     void createArticle() throws Exception {
-        Mockito.when(articleService.createArticle("title", "user-id")).thenReturn(article);
+        ArticleCreationDto request = new ArticleCreationDto("title", false);
+        Mockito.when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(article);
 
         mockMvc.perform(post("/api/v1/articles")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\": \"some-uid\", \"title\": \"title\",\"date\": \"2023-06-24\", \"deleted\": true}"))
-                .andExpect(status().isOk());
+                        .content("{\"title\": \"title\", \"isPrivate\": false}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser
     void getArticle() throws Exception {
         Mockito.when(articleService.getArticle("some-uid")).thenReturn(article);
 
@@ -66,8 +75,9 @@ class ArticleControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getArticles() throws Exception {
-        Mockito.when(articleService.getArticles(0)).thenReturn(List.of(article));
+        Mockito.when(articleService.getPublicArticles(0)).thenReturn(List.of(article));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -79,13 +89,6 @@ class ArticleControllerTest {
     void getDeletedArticles() {
     }
 
-    @Test
-    void testCreateArticle() {
-    }
-
-    @Test
-    void testGetArticle() {
-    }
 
     @Test
     void deleteArticle() {
@@ -95,7 +98,4 @@ class ArticleControllerTest {
     void restoreArticle() {
     }
 
-    @Test
-    void addSectionArticle() {
-    }
 }
