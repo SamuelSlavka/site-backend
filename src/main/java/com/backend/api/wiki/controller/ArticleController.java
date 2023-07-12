@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/api/v1/articles")
@@ -31,18 +30,17 @@ public class ArticleController {
     @GetMapping
     public List<ArticleListItemDto> getArticles(@RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
         this.logger.info("called ");
-        List<Article>  articles;
+        List<Article> articles;
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
-            this.logger.info("User "+ userId);
+            this.logger.info("User {}", userId);
             articles = articleService.getUserArticles(page, userId);
 
         } else {
             this.logger.info("Unknown user");
             articles = articleService.getPublicArticles(page);
         }
-        return articles.stream().map(this::convertToListItemDto)
-                .collect(Collectors.toList());
+        return articles.stream().map(this::convertToListItemDto).toList();
     }
 
     @GetMapping(path = "/deleted")
@@ -59,8 +57,8 @@ public class ArticleController {
     }
 
     @PutMapping(path = "/{articleId}")
-    public void editArticle(@PathVariable("articleId") String id, @Valid @RequestBody ArticleCreationDto request) throws NotFoundException {
-        articleService.editArticle(id, request);
+    public ArticleDto editArticle(@PathVariable("articleId") String id, @Valid @RequestBody ArticleCreationDto request) throws NotFoundException {
+        return convertToDto(articleService.editArticle(id, request));
     }
 
     @GetMapping(path = "/id/{articleId}")
@@ -71,11 +69,6 @@ public class ArticleController {
     @DeleteMapping(path = "/{articleId}")
     public void deleteArticle(@PathVariable("articleId") String id) throws NotFoundException {
         articleService.deleteArticle(id);
-    }
-
-    @PostMapping(path = "/restore/{articleId}")
-    public void restoreArticle(@PathVariable("articleId") String id) throws NotFoundException {
-        articleService.restoreArticle(id);
     }
 
     private ArticleListItemDto convertToListItemDto(Article article) {
