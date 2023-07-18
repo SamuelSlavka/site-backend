@@ -30,6 +30,7 @@ public class ArticleController {
     @GetMapping
     public List<ArticleListItemDto> getArticles(@RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
         this.logger.info("called ");
+
         List<Article> articles;
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
