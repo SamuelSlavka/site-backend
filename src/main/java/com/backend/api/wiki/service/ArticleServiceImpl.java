@@ -74,6 +74,9 @@ public class ArticleServiceImpl implements ArticleService {
         if (Objects.nonNull(data.getTitle())) {
             article.setTitle(data.getTitle());
         }
+        if (Objects.nonNull(data.getIsPrivate())) {
+            article.setIsPrivate(data.getIsPrivate());
+        }
         articleRepository.save(article);
         return article;
     }

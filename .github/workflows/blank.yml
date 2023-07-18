@@ -45,6 +45,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            docker pull samsla/site-backend:latest
             docker rm -f site-backend
             docker run -d --name site-backend --network host samsla/site-backend
