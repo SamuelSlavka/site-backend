@@ -1,5 +1,6 @@
 package com.backend.api.wiki.controller;
 
+import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.ArticleCreationDto;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
 @RestController
 @RequestMapping(path = "/api/v1/articles")
 public class ArticleController {
@@ -29,8 +32,6 @@ public class ArticleController {
 
     @GetMapping
     public List<ArticleListItemDto> getArticles(@RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
-        this.logger.info("called ");
-
         List<Article> articles;
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
@@ -43,6 +44,7 @@ public class ArticleController {
         }
         return articles.stream().map(this::convertToListItemDto).toList();
     }
+
 
     @GetMapping(path = "/deleted")
     public List<Article> getDeletedArticles() {
@@ -57,9 +59,10 @@ public class ArticleController {
         return convertToListItemDto(articleService.createArticle(request, userId));
     }
 
-    @PutMapping(path = "/{articleId}")
-    public ArticleDto editArticle(@PathVariable("articleId") String id, @Valid @RequestBody ArticleCreationDto request) throws NotFoundException {
-        return convertToDto(articleService.editArticle(id, request));
+    @RequestMapping(value = {"{articleId}"}, method = PUT)
+    public ArticleDto editArticle(@PathVariable("articleId") String articleId, @Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
+        String userId = principal.getSubject();
+        return convertToDto(articleService.editArticle(articleId, request, userId));
     }
 
     @GetMapping(path = "/id/{articleId}")
@@ -68,8 +71,9 @@ public class ArticleController {
     }
 
     @DeleteMapping(path = "/{articleId}")
-    public void deleteArticle(@PathVariable("articleId") String id) throws NotFoundException {
-        articleService.deleteArticle(id);
+    public void deleteArticle(@PathVariable("articleId") String articleId, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
+        String userId = principal.getSubject();
+        articleService.deleteArticle(articleId, userId);
     }
 
     private ArticleListItemDto convertToListItemDto(Article article) {

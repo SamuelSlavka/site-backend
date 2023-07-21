@@ -21,6 +21,7 @@ public class Revision {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    @Lob
     @NotBlank(message = "Missing revision content")
     private String text;
     @Column(name = "created_at")

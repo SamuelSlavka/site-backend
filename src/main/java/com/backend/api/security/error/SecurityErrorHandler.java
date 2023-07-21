@@ -1,4 +1,4 @@
-package com.backend.api.security;
+package com.backend.api.security.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class ErrorHandler implements AuthenticationEntryPoint {
+public class SecurityErrorHandler implements AuthenticationEntryPoint {
 
-    private static final Logger logger = LoggerFactory.getLogger(ErrorHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(SecurityErrorHandler.class);
 
     public void commence(
             final HttpServletRequest request,

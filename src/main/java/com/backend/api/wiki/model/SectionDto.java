@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -14,9 +15,12 @@ public class SectionDto {
 
     private RevisionDto latestRevision;
 
-    private List<SectionDto> subsections;
+    private Set<SectionDto> subsections;
 
     private Integer sectionOrder;
 
     private Integer depth;
+
+    private String createdBy;
 }
+

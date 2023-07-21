@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -21,6 +22,7 @@ import java.util.Set;
 @Where(clause = "deleted = false")
 @SQLDelete(sql = "UPDATE Section SET deleted = TRUE WHERE id = ?")
 @Table(name = "section")
+@EqualsAndHashCode(exclude = "article")
 public class Section {
 
     @Id
@@ -48,9 +50,12 @@ public class Section {
 
     private Boolean deleted = Boolean.FALSE;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "article_id", referencedColumnName = "id")
+    private Article article;
 
     public Section() {
-        this.deleted = false;
+        this.deleted = Boolean.FALSE;
     }
 
 }

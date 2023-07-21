@@ -1,14 +1,18 @@
 package com.backend.api.wiki.service;
 
+import com.backend.api.security.error.ForbiddenException;
+import com.backend.api.utils.KeycloakRoleConverter;
+import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
+import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.SectionDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.SectionRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,29 +26,54 @@ public class SectionServiceImpl implements SectionService {
     private final SectionRepository sectionRepository;
 
     @Autowired
+    ConversionService conversionService;
+
+    @Autowired
+    public HttpServletRequest servletRequest;
+
+    @Autowired
     public SectionServiceImpl(ArticleRepository articleRepository, SectionRepository sectionRepository) {
         this.articleRepository = articleRepository;
         this.sectionRepository = sectionRepository;
     }
 
+    @Override
+    public SectionDto getSection(String id) throws NotFoundException, ForbiddenException {
+        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+
+        if(this.isAllowed(section)) {
+            throw new ForbiddenException("You cant view this section");
+        }
+        return conversionService.convert(section, SectionDto.class);
+    }
+
+
 
     @Override
-    public List<Section> getSections(Integer page) {
-        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("section_order"));
-        return sectionRepository.findByDeletedFalse(sortedPage);
+    public SectionDto getSection(String sectionId, String userId) throws NotFoundException, ForbiddenException {
+        Section section = sectionRepository.findByIdAndDeletedFalse(sectionId).orElseThrow(() -> new NotFoundException("Section not found"));
+
+        if(this.isAllowed(section, userId)) {
+            throw new ForbiddenException("You cant view this section");
+        }
+        return conversionService.convert(section, SectionDto.class);
+
     }
 
     @Override
-    public Section getSection(String id) throws NotFoundException {
-        return sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
-    }
-
-    @Override
-    public Section createSubSection(String id, String text) throws NotFoundException {
+    public Section createSubSection(String id, String text, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
         Section superSection = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+        if(superSection.getDepth() == 3) {
+            throw new NotAllowedException("Section depth is too low");
+        }
+
+        if(this.isAllowed(superSection, userId)) {
+            throw new ForbiddenException("You cant view this section");
+        }
         Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
+
         Set<Section> sections = superSection.getSubsections();
-        Section newSection = Section.builder().deleted(false).latestRevision(revision).revisions(List.of(revision)).depth(superSection.getDepth()+1).sectionOrder(sections.size()+1).build();
+        Section newSection = Section.builder().article(superSection.getArticle()).deleted(false).latestRevision(revision).revisions(List.of(revision)).depth(superSection.getDepth()+1).sectionOrder(sections.size()+1).build();
         sections.add(newSection);
         superSection.setSubsections(sections);
         sectionRepository.flush();
@@ -52,8 +81,13 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public Section createRevision(String id, String text) throws NotFoundException {
+    public Section createRevision(String id, String text, String userId) throws NotFoundException, ForbiddenException {
         Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+
+        if(this.isAllowed(section, userId)) {
+            throw new ForbiddenException("You cant view this section");
+        }
+
         Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
         List<Revision> revisions = section.getRevisions();
         revisions.add(revision);
@@ -64,14 +98,30 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public void deleteSection(String id) throws NotFoundException {
-        sectionRepository.deleteById(id);
+    public void deleteSection(String id, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
+        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+
+        if(this.isAllowed(section, userId)) {
+            throw new ForbiddenException("You cant delete this section");
+        }
+
+        if(section.getDepth() == 0) {
+            throw new NotAllowedException("Cant delete top section");
+        }
+        section.setDeleted(true);
+        sectionRepository.save(section);
     }
 
-    @Override
-    public Section restoreSection(String id) throws NotFoundException {
-        Section section = sectionRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
-        section.setDeleted(false);
-        return sectionRepository.save(section);
+
+    private boolean isAllowed(Section section, String userId) {
+        Article article = section.getArticle();
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+        return article.getIsPrivate() && !article.getCreatedBy().equals(userId) && !isAdmin;
+    }
+
+    private boolean isAllowed(Section section) {
+        Article article = section.getArticle();
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+        return article.getIsPrivate() && !isAdmin;
     }
 }

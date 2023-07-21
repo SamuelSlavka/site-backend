@@ -51,6 +51,7 @@ public class ArticleConfig implements WebMvcConfigurer {
 
             Category tmpCategory = Category.builder().deleted(false).categoryName("catName").build();
             Section tmpSection = Section.builder().deleted(false).sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
+            tmpSection.setArticle(tmpArticle);
             Revision tmpRevision = Revision.builder().deleted(false).text(
                     """
                             ## Java
@@ -64,6 +65,8 @@ public class ArticleConfig implements WebMvcConfigurer {
             Revision tmpRevision2 = Revision.builder().deleted(false).text("rev2").build();
             Section tmpSection2 = Section.builder().latestRevision(tmpRevision2).revisions(List.of(tmpRevision2)).deleted(true).sectionOrder(2).depth(1).build();
             Set<Section> subs = tmpSection.getSubsections();
+            tmpSection2.setArticle(tmpArticle);
+            tmpSection3.setArticle(tmpArticle);
             subs.addAll(List.of(tmpSection3, tmpSection2));
             tmpSection.setSubsections(subs);
 

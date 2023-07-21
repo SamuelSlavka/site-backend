@@ -22,7 +22,6 @@ public interface ArticleRepository extends JpaRepository<Article, String> {
 
     Optional<Article> findByIdAndDeletedFalse(@NotNull String id);
 
-    Optional<Article> findByIdAndDeletedTrue(@NotNull String id);
 
     List<Article> findByDeletedTrue();
 
