@@ -14,4 +14,7 @@ public class ArticleDto {
 
     private SectionDto section;
 
+    private String createdBy;
+
+    private Boolean isPrivate = Boolean.FALSE;
 }

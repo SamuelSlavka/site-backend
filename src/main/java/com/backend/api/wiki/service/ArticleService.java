@@ -1,6 +1,7 @@
 package com.backend.api.wiki.service;
 
 import com.backend.api.wiki.entity.Article;
+import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.ArticleCreationDto;
 
@@ -22,9 +23,7 @@ public interface ArticleService {
 
     Article createArticle(ArticleCreationDto request, String userId);
 
-    void deleteArticle(String id) throws NotFoundException;
-
-    Article restoreArticle(String id) throws NotFoundException;
-
-    Article editArticle(String id, ArticleCreationDto data) throws NotFoundException;
+    void deleteArticle(String articleId, String userId) throws NotFoundException, ForbiddenException;
+    
+    Article editArticle(String id, ArticleCreationDto data, String userId) throws NotFoundException, ForbiddenException;
 }

@@ -1,5 +1,7 @@
-package com.backend.api.security;
+package com.backend.api.security.config;
 
+import com.backend.api.utils.KeycloakRoleConverter;
+import com.backend.api.security.error.SecurityErrorHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +22,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final ErrorHandler errorHandler;
+    private final SecurityErrorHandler errorHandler;
 
     @Bean
     protected SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers((headers) -> headers.disable())
+                .headers(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(r -> r
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()

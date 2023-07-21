@@ -81,7 +81,7 @@ class ArticleControllerTest {
     @Test
     @WithMockUser
     void editArticle() throws Exception {
-        when(articleService.editArticle(anyString(), any(ArticleCreationDto.class))).thenReturn(article);
+        when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(article);
 
         mockMvc.perform(put("/api/v1/articles/some-uid")
                         .contentType(MediaType.APPLICATION_JSON)

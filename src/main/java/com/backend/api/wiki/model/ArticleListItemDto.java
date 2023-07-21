@@ -15,4 +15,7 @@ public class ArticleListItemDto {
 
     private String superSection;
 
+    private String createdBy;
+
+    private Boolean isPrivate;
 }

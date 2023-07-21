@@ -1,11 +1,16 @@
 package com.backend.api.wiki.service;
 
+import com.backend.api.utils.KeycloakRoleConverter;
 import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.entity.Section;
+import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.ArticleCreationDto;
 import com.backend.api.wiki.repository.ArticleRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +24,16 @@ import java.util.Objects;
 
 @Service
 public class ArticleServiceImpl implements ArticleService {
-
+    private final Logger logger = LoggerFactory.getLogger((ArticleServiceImpl.class));
     private final ArticleRepository articleRepository;
 
     @Autowired
     public ArticleServiceImpl(ArticleRepository articleRepository) {
         this.articleRepository = articleRepository;
     }
+
+    @Autowired
+    public HttpServletRequest servletRequest;
 
     @Override
     public List<Article> getArticles(Integer page) {
@@ -64,19 +72,26 @@ public class ArticleServiceImpl implements ArticleService {
     public Article createArticle(ArticleCreationDto request, String userId) {
         Section topSection = Section.builder().sectionOrder(0).depth(0).deleted(false).build();
         Article localArticle = Article.builder().title(request.getTitle()).section(topSection).createdAt(LocalDateTime.now()).deleted(false).createdBy(userId).isPrivate(request.getIsPrivate()).build();
-
+        topSection.setArticle(localArticle);
         return articleRepository.save(localArticle);
     }
 
     @Override
-    public Article editArticle(String id, ArticleCreationDto data) throws NotFoundException {
-        Article article = articleRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
+    @Transactional
+    public Article editArticle(String id, ArticleCreationDto data, String userId) throws NotFoundException, ForbiddenException {
+        Article article = articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+
         if (Objects.nonNull(data.getTitle())) {
             article.setTitle(data.getTitle());
         }
         if (Objects.nonNull(data.getIsPrivate())) {
             article.setIsPrivate(data.getIsPrivate());
         }
+
+        if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
+            throw  new ForbiddenException("Article edit not allowed");
+        }
         articleRepository.save(article);
         return article;
     }
@@ -84,16 +99,14 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
-    public void deleteArticle(String id) throws NotFoundException {
-        articleRepository.deleteById(id);
-    }
+    public void deleteArticle(String articleId, String userId) throws NotFoundException, ForbiddenException {
+        Article article = articleRepository.findByIdAndDeletedFalse(articleId).orElseThrow(() -> new NotFoundException("Article not found"));
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
-    @Override
-    @Transactional
-    public Article restoreArticle(String id) throws NotFoundException {
-        Article article = articleRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new NotFoundException("Article not found"));
-        article.setDeleted(false);
+        if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
+            throw  new ForbiddenException("Article edit not allowed");
+        }
+        article.setDeleted(true);
         articleRepository.save(article);
-        return article;
     }
 }
