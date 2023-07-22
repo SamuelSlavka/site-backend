@@ -60,9 +60,9 @@ public class ArticleController {
     }
 
     @RequestMapping(value = {"{articleId}"}, method = PUT)
-    public ArticleDto editArticle(@PathVariable("articleId") String articleId, @Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
+    public ArticleListItemDto editArticle(@PathVariable("articleId") String articleId, @Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
         String userId = principal.getSubject();
-        return convertToDto(articleService.editArticle(articleId, request, userId));
+        return convertToListItemDto(articleService.editArticle(articleId, request, userId));
     }
 
     @GetMapping(path = "/id/{articleId}")
