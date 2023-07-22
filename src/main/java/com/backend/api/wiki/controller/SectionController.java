@@ -4,7 +4,7 @@ import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
-import com.backend.api.wiki.model.SectionCreationDto;
+import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
 import com.backend.api.wiki.service.SectionService;
 import jakarta.validation.Valid;
@@ -32,19 +32,19 @@ public class SectionController {
     }
 
     @PostMapping(path = "/id/{sectionId}")
-    public SectionDto createSubSection(@PathVariable("sectionId") String sectionId, @Valid @RequestBody SectionCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, NotAllowedException, ForbiddenException {
+    public SectionDto createSubSection(@PathVariable("sectionId") String sectionId, @Valid @RequestBody RevisionCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, NotAllowedException, ForbiddenException {
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
-            return convertToSectionDto(sectionService.createSubSection(sectionId, request.getText(), userId));
+            return convertToSectionDto(sectionService.createSubSection(sectionId, request, userId));
         }
         throw new NotAllowedException("You cant create new revision");
     }
 
     @PutMapping(path = "/id/{sectionId}")
-    public SectionDto createRevision(@PathVariable("sectionId") String sectionId, @Valid @RequestBody SectionCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, NotAllowedException, ForbiddenException {
+    public SectionDto createRevision(@PathVariable("sectionId") String sectionId, @Valid @RequestBody RevisionCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, NotAllowedException, ForbiddenException {
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
-            return convertToSectionDto(sectionService.createRevision(sectionId, request.getText(), userId));
+            return convertToSectionDto(sectionService.createRevision(sectionId, request, userId));
         }
         throw new NotAllowedException("You cant create new revision");
     }

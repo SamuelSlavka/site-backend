@@ -33,7 +33,7 @@ public class SectionToDtoConverter implements Converter<Section, SectionDto> {
 
     private RevisionDto convertRevision(Revision from) {
         if (Objects.nonNull(from)) {
-            return new RevisionDto(from.getId(), from.getText());
+            return new RevisionDto(from.getId(), from.getTitle(), from.getText());
         }
         return null;
     }

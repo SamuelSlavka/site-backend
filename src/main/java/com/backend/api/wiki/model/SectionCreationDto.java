@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class SectionCreationDto {
     private String text;
+    private String title;
 }

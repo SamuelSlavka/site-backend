@@ -79,7 +79,7 @@ public class ArticleController {
     private ArticleListItemDto convertToListItemDto(Article article) {
         ArticleListItemDto artItem = modelMapper.map(article, ArticleListItemDto.class);
         if (Objects.nonNull(article.getSection())) {
-            artItem.setSuperSection(article.getSection().getId());
+            artItem.setSection(article.getSection().getId());
         }
         return artItem;
     }

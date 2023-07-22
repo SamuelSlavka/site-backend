@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RevisionDto {
     private String id;
-
+    private String title;
     private String text;
-
 }

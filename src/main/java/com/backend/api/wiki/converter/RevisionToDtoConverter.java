@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class RevisionToDtoConverter implements Converter<Revision, RevisionDto> {
     @Override
     public RevisionDto convert(Revision from) {
-        return new RevisionDto(from.getId(), from.getText());
+        return new RevisionDto(from.getId(), from.getText(), from.getTitle());
     }
 }
