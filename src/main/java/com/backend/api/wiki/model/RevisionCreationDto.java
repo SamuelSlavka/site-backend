@@ -7,15 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArticleListItemDto {
-
-    private String id;
-
+public class RevisionCreationDto {
     private String title;
-
-    private String section;
-
-    private String createdBy;
-
-    private Boolean isPrivate;
+    private String text;
 }

@@ -4,6 +4,7 @@ import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
 
 public interface SectionService {
@@ -11,9 +12,9 @@ public interface SectionService {
 
     SectionDto getSection(String sectionId, String userId) throws NotFoundException, ForbiddenException;
 
-    Section createSubSection(String id, String text, String userId) throws NotFoundException, NotAllowedException, ForbiddenException;
+    Section createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, NotAllowedException, ForbiddenException;
 
-    Section createRevision(String id, String text, String userId) throws NotFoundException, ForbiddenException;
+    Section createRevision(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, ForbiddenException;
 
     void deleteSection(String id, String userId) throws NotFoundException, NotAllowedException, ForbiddenException;
 }

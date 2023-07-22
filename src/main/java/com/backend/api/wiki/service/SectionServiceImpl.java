@@ -7,6 +7,7 @@ import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.SectionRepository;
@@ -61,7 +62,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public Section createSubSection(String id, String text, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
+    public Section createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
         Section superSection = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
         if(superSection.getDepth() == 3) {
             throw new NotAllowedException("Section depth is too low");
@@ -70,7 +71,7 @@ public class SectionServiceImpl implements SectionService {
         if(this.isAllowed(superSection, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
-        Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
+        Revision revision = Revision.builder().text(revisionContent.getText()).title(revisionContent.getTitle()).createdAt(LocalDateTime.now()).deleted(false).build();
 
         Set<Section> sections = superSection.getSubsections();
         Section newSection = Section.builder().article(superSection.getArticle()).deleted(false).latestRevision(revision).revisions(List.of(revision)).depth(superSection.getDepth()+1).sectionOrder(sections.size()+1).build();
@@ -81,14 +82,14 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public Section createRevision(String id, String text, String userId) throws NotFoundException, ForbiddenException {
+    public Section createRevision(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, ForbiddenException {
         Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
 
         if(this.isAllowed(section, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
 
-        Revision revision = Revision.builder().text(text).createdAt(LocalDateTime.now()).deleted(false).build();
+        Revision revision = Revision.builder().text(revisionContent.getText()).title(revisionContent.getTitle()).createdAt(LocalDateTime.now()).deleted(false).build();
         List<Revision> revisions = section.getRevisions();
         revisions.add(revision);
         section.setRevisions(revisions);

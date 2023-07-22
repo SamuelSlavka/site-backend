@@ -28,12 +28,15 @@ public class Revision {
     private LocalDateTime createdAt;
     private Boolean deleted = Boolean.FALSE;
 
+    private String title;
+
     public Revision() {
         this.deleted = Boolean.FALSE;
     }
 
-    public Revision(String text) {
+    public Revision(String text, String title) {
         this.text = text;
+        this.title = title;
         this.deleted = false;
         this.createdAt = LocalDateTime.now();
     }
