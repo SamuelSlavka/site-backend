@@ -8,10 +8,10 @@ server:
       max-request-size: 50MB
 
 spring:
-  profiles:
-    active: mem
   config:
     import: optional:file:.env[.properties]
+  profiles:
+    active: ${PROFILE:psql}
   application:
     name: site-backend
   security:
@@ -19,8 +19,8 @@ spring:
       resourceserver:
         jwt:
           client-id: site-backend
-          issuer-uri: ${ISSUER_URI:https://keycloak.sam-sla.net/realms/site}
-          jwk-set-uri: ${JWK_SET_URI:https://keycloak.sam-sla.net/realms/site/protocol/openid-connect/certs}
+          issuer-uri: ${ISSUER_URI}
+          jwk-set-uri: ${JWK_SET_URI}
   level:
     org.springframework.security: DEBUG
 
@@ -68,9 +68,9 @@ spring:
     activate:
       on-profile: psql
   datasource:
-    password: admin
-    url: jdbc:postgresql://0.0.0.0:5432/db
-    username: admin
+    url: jdbc:postgresql://localhost:5435/site
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: create-drop
