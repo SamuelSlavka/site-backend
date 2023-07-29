@@ -45,6 +45,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
+            echo "${{ secrets.SERVER_ENV_PROD }}" > .env-backend
             docker pull samsla/site-backend:latest
             docker rm -f site-backend
-            docker run -d --name site-backend --network host samsla/site-backend
+            docker run --env-file .env-backend -d --name site-backend --network host samsla/site-backend
+            rm .env-backend 2> /dev/null
