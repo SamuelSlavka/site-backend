@@ -2,6 +2,7 @@ package com.backend.api.wiki.service;
 
 import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.error.NotFoundException;
+import com.backend.api.wiki.model.ArticleListItemDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,6 @@ class ArticleServiceTest {
         Article article = Article.builder()
                 .id("some-uid-two")
                 .title("title")
-                .deleted(false)
                 .build();
 
         Mockito.when(articleRepository.findByTitleAndDeletedFalse(("title"))).thenReturn(Optional.ofNullable(article));
@@ -39,7 +39,7 @@ class ArticleServiceTest {
     @DisplayName("Return article based on Title")
     public void returnArticleWithValidName() {
         String articleTitle = "title";
-        Article article = articleService.getArticleByTitle(articleTitle);
+        ArticleListItemDto article = articleService.getArticleByTitle(articleTitle);
 
         assertEquals(article.getTitle(), articleTitle);
     }

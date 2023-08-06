@@ -7,6 +7,7 @@ import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
+import com.backend.api.wiki.repository.SectionRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -45,14 +46,15 @@ public class ArticleConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    CommandLineRunner commandLineRunner(ArticleRepository articleRepository, CategoryRepository categoryRepository) {
+    CommandLineRunner commandLineRunner(SectionRepository sectionRepository ,ArticleRepository articleRepository, CategoryRepository categoryRepository) {
         return args -> {
-            Article tmpArticle = Article.builder().deleted(false).createdAt(LocalDateTime.now().minusHours(1)).isPrivate(false).title("java tbd").build();
+            Article tmpArticle = Article.builder().isPrivate(false).title("java tbd").build();
 
-            Category tmpCategory = Category.builder().deleted(false).categoryName("catName").build();
-            Section tmpSection = Section.builder().deleted(false).sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
+            Category tmpCategory = Category.builder().categoryName("catName").build();
+
+            Section tmpSection = Section.builder().sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
             tmpSection.setArticle(tmpArticle);
-            Revision tmpRevision = Revision.builder().deleted(false).text(
+            Revision tmpRevision = Revision.builder().text(
                     """
                             ## Java
                                 final - cannot be modified or extended
@@ -61,20 +63,38 @@ public class ArticleConfig implements WebMvcConfigurer {
                             """
             ).build();
 
-            Section tmpSection3 = Section.builder().deleted(false).depth(1).sectionOrder(3).build();
-            Revision tmpRevision2 = Revision.builder().deleted(false).text("rev2").build();
-            Section tmpSection2 = Section.builder().latestRevision(tmpRevision2).revisions(List.of(tmpRevision2)).deleted(true).sectionOrder(2).depth(1).build();
+            Revision tmpRevision2 = Revision.builder().text("rev2").build();
+            Revision tmpRevision3 = Revision.builder().text("re33").build();
+            Revision tmpRevision4 = Revision.builder().text("re44").build();
+            Section tmpSection2 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision2).revisions(List.of(tmpRevision2)).sectionOrder(1).depth(1).build();
+            Section tmpSection3 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision3).revisions(List.of(tmpRevision3)).sectionOrder(1).depth(2).build();
+            Section tmpSection4 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision4).revisions(List.of(tmpRevision4)).sectionOrder(2).depth(2).build();
+            tmpSection2.setCreatedAt(LocalDateTime.now());
+            tmpSection3.setCreatedAt(LocalDateTime.now());
+            tmpSection3.setSuperSection(tmpSection2);
+            tmpSection4.setSuperSection(tmpSection2);
+            tmpSection2.setSuperSection(tmpSection);
+
+            Set<Section> subs2 = tmpSection2.getSubsections();
             Set<Section> subs = tmpSection.getSubsections();
+
             tmpSection2.setArticle(tmpArticle);
             tmpSection3.setArticle(tmpArticle);
-            subs.addAll(List.of(tmpSection3, tmpSection2));
+            tmpSection4.setArticle(tmpArticle);
+
+            subs2.addAll(List.of( tmpSection3, tmpSection4 ));
+            subs.addAll(List.of( tmpSection2 ));
+            tmpSection2.setSubsections(subs2);
             tmpSection.setSubsections(subs);
 
+            tmpSection.setCreatedAt(LocalDateTime.now());
             tmpSection.setRevisions(List.of(tmpRevision));
             tmpSection.setLatestRevision(tmpRevision);
             tmpArticle.setCategories(List.of(tmpCategory));
             tmpArticle.setSection(tmpSection);
             articleRepository.save(tmpArticle);
+            articleRepository.flush();
         };
     }
 }
+

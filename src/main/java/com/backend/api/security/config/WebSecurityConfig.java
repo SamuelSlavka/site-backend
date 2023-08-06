@@ -1,7 +1,7 @@
 package com.backend.api.security.config;
 
-import com.backend.api.utils.KeycloakRoleConverter;
 import com.backend.api.security.error.SecurityErrorHandler;
+import com.backend.api.security.utils.KeycloakRoleConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

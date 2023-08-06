@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class RevisionCreationDto {
     private String title;
     private String text;
+
 }

@@ -3,6 +3,7 @@ package com.backend.api.wiki.controller;
 import com.backend.api.Utils.Utils;
 import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.model.ArticleCreationDto;
+import com.backend.api.wiki.model.ArticleListItemDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.service.ArticleService;
@@ -50,6 +51,7 @@ class ArticleControllerTest {
     @MockBean
     private Jwt jwt;
     private Article article;
+    private ArticleListItemDto articleDto;
 
 
     @BeforeEach
@@ -58,8 +60,9 @@ class ArticleControllerTest {
                 .id("some-uid")
                 .title("title")
                 .isPrivate(false)
-                .deleted(false)
                 .build();
+
+        articleDto = new ArticleListItemDto("some-uid","title", "Section", "created", false, List.of());
     }
 
     @Test
@@ -69,7 +72,7 @@ class ArticleControllerTest {
         SecurityContextHolder.setContext(securityContext);
         when(securityFilterChain.matches(any(HttpServletRequest.class))).thenReturn(true);
         ArticleCreationDto request = new ArticleCreationDto("title", false);
-        when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(article);
+        when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(post("/api/v1/articles")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +84,7 @@ class ArticleControllerTest {
     @Test
     @WithMockUser
     void editArticle() throws Exception {
-        when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(article);
+        when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(put("/api/v1/articles/some-uid")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +96,7 @@ class ArticleControllerTest {
     @Test
     @WithMockUser
     void getArticle() throws Exception {
-        when(articleService.getArticle("some-uid")).thenReturn(article);
+        when(articleService.getArticle("some-uid")).thenReturn(articleDto);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles/id/some-uid")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -104,7 +107,7 @@ class ArticleControllerTest {
     @Test
     @WithMockUser
     void getArticles() throws Exception {
-        when(articleService.getPublicArticles(0)).thenReturn(List.of(article));
+        when(articleService.getPublicArticles(0)).thenReturn(List.of(articleDto));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0")
                         .contentType(MediaType.APPLICATION_JSON))
