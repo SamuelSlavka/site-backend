@@ -23,9 +23,15 @@ spring:
           jwk-set-uri: ${JWK_SET_URI}
   level:
     org.springframework.security: DEBUG
-
+  datasource:
+    autoCommit: false
   mvc:
     dispatch-options-request: true
+
+flyway:
+  datasources:
+    default:
+      enabled: true
 
 logging:
   level:

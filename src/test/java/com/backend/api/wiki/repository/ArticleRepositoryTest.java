@@ -28,9 +28,8 @@ class ArticleRepositoryTest {
     void setUp() {
         Article article = Article.builder()
                 .id("some-uid-two")
-                .deleted(false)
                 .build();
-
+        article.setDeleted(false);
         testEntityManager.persist((article));
     }
 
@@ -38,9 +37,8 @@ class ArticleRepositoryTest {
     @DisplayName("Create a new article")
     public void createArticle() {
         Article article = Article.builder()
-                .deleted(false)
                 .build();
-
+        article.setDeleted(false);
         articleRepository.save(article);
     }
 

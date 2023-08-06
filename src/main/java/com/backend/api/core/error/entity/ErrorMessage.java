@@ -1,4 +1,4 @@
-package com.backend.api.error.entity;
+package com.backend.api.core.error.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

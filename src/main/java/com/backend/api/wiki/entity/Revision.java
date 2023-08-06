@@ -1,43 +1,38 @@
 package com.backend.api.wiki.entity;
 
+import com.backend.api.core.entity.OwnedEntity;
+import com.backend.api.core.entity.SoftDeletableEntity;
+import com.backend.api.wiki.model.RevisionDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import org.hibernate.annotations.SQLDelete;
+import lombok.*;
 import org.hibernate.annotations.Where;
 
-import java.time.LocalDateTime;
-
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@Where(clause = SoftDeletableEntity.SOFT_DELETED_CLAUSE)
 @Table(name = "revision")
-@Where(clause = "deleted = false")
-@SQLDelete(sql = "UPDATE Section SET deleted = TRUE WHERE id = ?")
-public class Revision {
+public class Revision extends OwnedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Lob
-    @NotBlank(message = "Missing revision content")
+
+    @Column(columnDefinition = "TEXT")
+    @NotBlank(message = "Missing revision text")
     private String text;
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-    private Boolean deleted = Boolean.FALSE;
 
     private String title;
-
-    public Revision() {
-        this.deleted = Boolean.FALSE;
-    }
 
     public Revision(String text, String title) {
         this.text = text;
         this.title = title;
-        this.deleted = false;
-        this.createdAt = LocalDateTime.now();
+    }
+
+    public RevisionDto getDto() {
+        return new RevisionDto(this.id, this.text, this.title);
     }
 }

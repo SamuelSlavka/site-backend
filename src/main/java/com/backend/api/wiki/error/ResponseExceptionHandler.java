@@ -1,6 +1,6 @@
 package com.backend.api.wiki.error;
 
-import com.backend.api.error.entity.ErrorMessage;
+import com.backend.api.core.error.entity.ErrorMessage;
 import com.backend.api.security.error.ForbiddenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

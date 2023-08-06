@@ -1,4 +1,4 @@
-package com.backend.api.error;
+package com.backend.api.core.error;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -1,4 +1,4 @@
-package com.backend.api.utils;
+package com.backend.api.security.utils;
 
 import com.backend.api.security.error.SecurityErrorHandler;
 import org.slf4j.Logger;
@@ -17,16 +17,15 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
-    public static enum rolesEnum {ADMIN, USER};
     private static final Logger logger = LoggerFactory.getLogger(SecurityErrorHandler.class);
 
     @Override
     public Collection<GrantedAuthority> convert(final Jwt jwt) {
-
         final Map<String, Object> claims = jwt.getClaims();
         logger.debug(claims.toString());
         final Map<String, List<String>> resourceAccess = (Map<String, List<String>>) claims.getOrDefault("realm_access", emptyMap());
-
         return resourceAccess.getOrDefault("roles", emptyList()).stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toList());
     }
+
+    public static enum rolesEnum {ADMIN, USER}
 }

@@ -1,68 +1,52 @@
 package com.backend.api.wiki.entity;
 
+import com.backend.api.core.entity.OwnedEntity;
+import com.backend.api.core.entity.SoftDeletableEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import org.hibernate.annotations.SQLDelete;
+import lombok.*;
 import org.hibernate.annotations.Where;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity
 @Data
-@AllArgsConstructor
+@Entity
 @Builder
-@Where(clause = "deleted = false")
-@SQLDelete(sql = "UPDATE Article SET deleted = TRUE WHERE id = ?")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@Where(clause = SoftDeletableEntity.SOFT_DELETED_CLAUSE)
 @Table(name = "article")
-public class Article {
+public class Article extends OwnedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String title;
 
-    private Boolean deleted = Boolean.FALSE;
-
     @Column(name = "is_private")
     private Boolean isPrivate = Boolean.FALSE;
 
-    @Column(name = "created_by")
-    private String createdBy;
-
-    @PastOrPresent
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "categories",
             joinColumns = @JoinColumn(name = "article_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private List<Category> categories;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id", referencedColumnName = "id")
+    @JsonIgnore
     private Section section;
-
-    public Article() {
-        deleted = Boolean.FALSE;
-    }
 
     public Article(String id, String title) {
         this.id = id;
         this.title = title;
-        this.deleted = Boolean.FALSE;
     }
 
     @Override
     public String toString() {
         return "Article{" +
                 "id=" + id +
-                ", deleted=" + deleted +
                 '}';
     }
 }
