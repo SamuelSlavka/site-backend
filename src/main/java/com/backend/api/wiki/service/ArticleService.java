@@ -14,12 +14,6 @@ public interface ArticleService {
 
     List<ArticleListItemDto> getUserArticles(Integer page, String userId);
 
-    ArticleListItemDto getArticle(String id) throws NotFoundException;
-
-    ArticleListItemDto getArticleByTitle(String title) throws NotFoundException;
-
-    List<ArticleListItemDto> getDeletedArticles();
-
     ArticleListItemDto createArticle(ArticleCreationDto request, String userId);
 
     void deleteArticle(String articleId, String userId) throws NotFoundException, ForbiddenException;

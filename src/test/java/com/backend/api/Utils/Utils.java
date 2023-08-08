@@ -1,4 +1,4 @@
-package com.backend.api.Utils;
+package com.backend.api.utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

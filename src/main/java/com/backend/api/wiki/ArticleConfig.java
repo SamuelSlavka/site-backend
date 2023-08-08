@@ -8,7 +8,6 @@ import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.repository.SectionRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,11 +32,6 @@ public class ArticleConfig implements WebMvcConfigurer {
         PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
         resolver.setFallbackPageable(PageRequest.of(0, 10, Sort.by("name").ascending()));
         resolvers.add(resolver);
-    }
-
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
     }
 
     @Bean
@@ -83,7 +77,7 @@ public class ArticleConfig implements WebMvcConfigurer {
             tmpSection4.setArticle(tmpArticle);
 
             subs2.addAll(List.of( tmpSection3, tmpSection4 ));
-            subs.addAll(List.of( tmpSection2 ));
+            subs.add( tmpSection2 );
             tmpSection2.setSubsections(subs2);
             tmpSection.setSubsections(subs);
 

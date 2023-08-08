@@ -31,25 +31,6 @@ class ArticleServiceTest {
                 .title("title")
                 .build();
 
-        Mockito.when(articleRepository.findByTitleAndDeletedFalse(("title"))).thenReturn(Optional.ofNullable(article));
     }
 
-    @Test
-    @SneakyThrows
-    @DisplayName("Return article based on Title")
-    public void returnArticleWithValidName() {
-        String articleTitle = "title";
-        ArticleListItemDto article = articleService.getArticleByTitle(articleTitle);
-
-        assertEquals(article.getTitle(), articleTitle);
-    }
-
-    @Test()
-    @DisplayName("Throw error on wrong article search")
-    public void throwCorrectErrorOnTitleSearch()  {
-        String articleTitle = "title2";
-        Throwable exception = assertThrows(NotFoundException.class, () -> articleService.getArticleByTitle(articleTitle));
-
-        assertEquals("Article not found", exception.getMessage());
-    }
 }

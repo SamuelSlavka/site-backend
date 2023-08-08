@@ -23,9 +23,10 @@ public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedA
     public Collection<GrantedAuthority> convert(final Jwt jwt) {
         final Map<String, Object> claims = jwt.getClaims();
         logger.debug(claims.toString());
+        @SuppressWarnings("unchecked")
         final Map<String, List<String>> resourceAccess = (Map<String, List<String>>) claims.getOrDefault("realm_access", emptyMap());
         return resourceAccess.getOrDefault("roles", emptyList()).stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toList());
     }
 
-    public static enum rolesEnum {ADMIN, USER}
+    public enum rolesEnum {ADMIN, USER}
 }

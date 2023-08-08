@@ -38,11 +38,6 @@ public class Article extends OwnedEntity {
     @JsonIgnore
     private Section section;
 
-    public Article(String id, String title) {
-        this.id = id;
-        this.title = title;
-    }
-
     @Override
     public String toString() {
         return "Article{" +

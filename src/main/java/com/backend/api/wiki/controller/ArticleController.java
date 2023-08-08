@@ -26,39 +26,36 @@ public class ArticleController {
     private ArticleService articleService;
 
     @GetMapping
-    public List<ArticleListItemDto> getArticles(@RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
+    public List<ArticleListItemDto> getArticles(@Valid @RequestParam Integer page, @AuthenticationPrincipal Jwt principal) {
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
-            this.logger.info("User {}", userId);
+            this.logger.info("User {} started fetched articles", userId);
             return articleService.getUserArticles(page, userId);
 
         } else {
-            this.logger.error("Unknown user");
+            this.logger.error("Unknown user fetched articles");
             return articleService.getPublicArticles(page);
         }
-    }
-
-    @GetMapping(path = "/deleted")
-    public List<ArticleListItemDto> getDeletedArticles() {
-        return articleService.getDeletedArticles();
     }
 
     @PostMapping
     public ArticleListItemDto createArticle(@Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) {
         String userId = principal.getSubject();
-
+        this.logger.info("User {} started creating article", userId);
         return articleService.createArticle(request, userId);
     }
 
     @RequestMapping(value = {"{articleId}"}, method = PUT)
-    public ArticleListItemDto editArticle(@PathVariable("articleId") String articleId, @Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
+    public ArticleListItemDto editArticle(@Valid @PathVariable("articleId") String articleId, @Valid @RequestBody ArticleCreationDto request, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
         String userId = principal.getSubject();
+        this.logger.info("User {} started editing article", userId);
         return articleService.editArticle(articleId, request, userId);
     }
 
     @DeleteMapping(path = "/{articleId}")
-    public void deleteArticle(@PathVariable("articleId") String articleId, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
+    public void deleteArticle(@Valid @PathVariable("articleId") String articleId, @AuthenticationPrincipal Jwt principal) throws NotFoundException, ForbiddenException {
         String userId = principal.getSubject();
+        this.logger.info("User {} started deleting article", userId);
         articleService.deleteArticle(articleId, userId);
     }
 }

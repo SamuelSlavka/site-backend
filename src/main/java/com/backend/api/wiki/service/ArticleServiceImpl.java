@@ -10,7 +10,6 @@ import com.backend.api.wiki.model.ArticleListItemDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Objects;
-
 
 @Service
 public class ArticleServiceImpl implements ArticleService {
@@ -53,29 +49,12 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
-    public ArticleListItemDto getArticle(String id) throws NotFoundException {
-        return articleToDto(articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found")));
-    }
-
-    @Override
-    @Transactional
-    public ArticleListItemDto getArticleByTitle(String title) throws NotFoundException {
-        return articleToDto(articleRepository.findByTitleAndDeletedFalse(title).orElseThrow(() -> new NotFoundException("Article not found")));
-    }
-
-    @Override
-    @Transactional
-    public List<ArticleListItemDto> getDeletedArticles() {
-        return articleToListDto(articleRepository.findByDeletedTrue());
-    }
-
-    @Override
-    @Transactional
     public ArticleListItemDto createArticle(ArticleCreationDto request, String userId) {
         Section topSection = Section.builder().sectionOrder(0).depth(0).build();
         Article article = Article.builder().title(request.getTitle()).section(topSection).isPrivate(request.getIsPrivate()).build();
         topSection.setArticle(article);
         articleRepository.save(article);
+        this.logger.info("User {} created article {}", userId, article.getId());
         return articleToDto(article);
     }
 
@@ -85,12 +64,8 @@ public class ArticleServiceImpl implements ArticleService {
         Article article = articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
-        if (Objects.nonNull(data.getTitle())) {
-            article.setTitle(data.getTitle());
-        }
-        if (Objects.nonNull(data.getIsPrivate())) {
-            article.setIsPrivate(data.getIsPrivate());
-        }
+        article.setTitle(data.getTitle());
+        article.setIsPrivate(data.getIsPrivate());
 
         if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
             throw new ForbiddenException("Article edit not allowed");

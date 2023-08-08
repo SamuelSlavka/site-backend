@@ -13,8 +13,6 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends OwnedRepository<Article, String> {
 
-    List<Article> findByDeletedFalse(Pageable pageable);
-
     @Query("SELECT a FROM Article a LEFT JOIN FETCH a.categories WHERE a.isPrivate = FALSE ")
     List<Article> findPublicArticles(Pageable pageable);
 
@@ -25,7 +23,4 @@ public interface ArticleRepository extends OwnedRepository<Article, String> {
 
     Optional<Article> findByIdAndDeletedFalse(@NotNull String id);
 
-    List<Article> findByDeletedTrue();
-
-    Optional<Article> findByTitleAndDeletedFalse(@NotNull String title);
 }

@@ -57,9 +57,7 @@ class ArticleRepositoryTest {
         Pageable secondPage = PageRequest.of(1, 2);
         Pageable sortedPage = PageRequest.of(1, 2, Sort.by("title"));
         List<Article> sorted = articleRepository.findAll(firstPage).getContent();
-        articleRepository.findByDeletedFalse(sortedPage);
         Sort sort = Sort.by("title");
-        List<Article> articles = articleRepository.findAll(sort);
     }
 
     @Test
