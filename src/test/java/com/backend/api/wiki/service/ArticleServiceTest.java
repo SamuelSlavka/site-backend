@@ -122,13 +122,11 @@ class ArticleServiceTest {
     }
 
     @Test
-    void deleteArticleAsNonOwner() throws ForbiddenException, NotFoundException {
+    void deleteArticleAsNonOwner() {
         when(articleRepository.findByIdAndDeletedFalse(articleId)).thenReturn(Optional.ofNullable(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
 
-        assertThrows(ForbiddenException.class, () -> {
-            this.articleService.deleteArticle(articleId, "other-id");
-        });
+        assertThrows(ForbiddenException.class, () -> this.articleService.deleteArticle(articleId, "other-id"));
 
         assertFalse(article.isDeleted());
         verify(articleRepository, times(0)).save(any(Article.class));
@@ -163,15 +161,13 @@ class ArticleServiceTest {
     }
 
     @Test
-    void editArticleAsOtherUser() throws ForbiddenException, NotFoundException {
+    void editArticleAsOtherUser() {
         ArticleCreationDto art = new ArticleCreationDto("title2", false);
 
         when(articleRepository.findByIdAndDeletedFalse(articleId)).thenReturn(Optional.ofNullable(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
 
-        assertThrows(ForbiddenException.class, () -> {
-            this.articleService.editArticle(articleId, art, "other-user-id");
-        });
+        assertThrows(ForbiddenException.class, () -> this.articleService.editArticle(articleId, art, "other-user-id"));
         verify(articleRepository, times(0)).save(any(Article.class));
     }
 }

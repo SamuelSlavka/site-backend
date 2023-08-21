@@ -17,8 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 class ArticleRepositoryTest {
-    private final String publicArticleId = "pub-article-id";
-    private final String privateArticleId = "private-article-id";
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired

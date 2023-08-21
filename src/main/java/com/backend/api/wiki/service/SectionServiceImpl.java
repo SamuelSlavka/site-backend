@@ -75,7 +75,7 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     @Transactional
-    public SectionDto createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
+    public SectionDto createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, ForbiddenException {
         Section superSection = sectionRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("Section not found"));
         Set<Section> subSections = superSection.getSubsections();

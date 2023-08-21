@@ -23,11 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class SectionRepositoryTest {
-    private final String sectionId = "section-id";
-    private final String userId = "user-id";
+
     private Section section;
     private Section subSection;
-    private RevisionCreationDto revCreation;
     @Autowired
     private SectionRepository sectionRepository;
     @Autowired
@@ -36,7 +34,8 @@ class SectionRepositoryTest {
     @BeforeEach
     void setUp() {
 
-        revCreation = new RevisionCreationDto("text", "title");
+        RevisionCreationDto revCreation = new RevisionCreationDto("text", "title");
+        String userId = "user-id";
         section = new Section(userId);
         Article article = new Article(new ArticleCreationDto("title", false), section, userId);
         testEntityManager.persist(article);
