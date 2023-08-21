@@ -5,16 +5,12 @@ import com.backend.api.core.entity.SoftDeletableEntity;
 import com.backend.api.wiki.model.SectionDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.*;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Where;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Data
@@ -58,16 +54,32 @@ public class Section extends OwnedEntity {
     @JsonIgnore
     private Article article;
 
-    public Section(Revision latestRevision, Section superSection) {
+    public Section(String userId) {
+        this.revisions = new ArrayList<>();
+        this.sectionOrder = 0;
+        this.depth = 0;
+        this.create(userId);
+    }
+
+    public Section(Revision latestRevision, Section superSection, String userId) {
         this.revisions = List.of(latestRevision);
         this.latestRevision = latestRevision;
         this.superSection = superSection;
         this.article = superSection.getArticle();
-        this.sectionOrder = 0;
+        this.sectionOrder = superSection.getSubsections().size();
         this.depth = superSection.getDepth() + 1;
+        this.create(userId);
     }
 
     public SectionDto getDto() {
         return new SectionDto(this);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Section %s, depth %d, order %d, revision %s, article %s", this.id, this.depth,
+                this.sectionOrder, Objects.isNull(this.latestRevision) ? null : this.latestRevision.toString(),
+                this.article.getId());
+    }
+
 }

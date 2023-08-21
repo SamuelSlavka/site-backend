@@ -17,20 +17,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
+/**
+ * @inheritDoc
+ */
 @Service
 public class ArticleServiceImpl implements ArticleService {
     private final Logger logger = LoggerFactory.getLogger((ArticleServiceImpl.class));
-    private final ArticleRepository articleRepository;
     @Autowired
-    public HttpServletRequest servletRequest;
-
+    private HttpServletRequest servletRequest;
     @Autowired
-    public ArticleServiceImpl(ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
-    }
+    private ArticleRepository articleRepository;
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public List<ArticleListItemDto> getPublicArticles(Integer page) {
@@ -39,29 +42,43 @@ public class ArticleServiceImpl implements ArticleService {
         return articleToListDto(articles);
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public List<ArticleListItemDto> getUserArticles(Integer page, String userId) {
         Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
-        List<Article> articles = articleRepository.findAllByCreatedByOrIsPrivateFalse(userId, sortedPage);
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+
+        List<Article> articles = articleRepository.findPrivateArticles(userId, isAdmin, sortedPage);
         return articleToListDto(articles);
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public ArticleListItemDto createArticle(ArticleCreationDto request, String userId) {
-        Section topSection = Section.builder().sectionOrder(0).depth(0).build();
-        Article article = Article.builder().title(request.getTitle()).section(topSection).isPrivate(request.getIsPrivate()).build();
-        topSection.setArticle(article);
+        Section section = new Section(userId);
+        Article article = new Article(request, section, userId);
+        section.setArticle(article);
+
         articleRepository.save(article);
         this.logger.info("User {} created article {}", userId, article.getId());
-        return articleToDto(article);
+        return article.getListItemDto();
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
-    public ArticleListItemDto editArticle(String id, ArticleCreationDto data, String userId) throws NotFoundException, ForbiddenException {
-        Article article = articleRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Article not found"));
+    public ArticleListItemDto editArticle(String id, ArticleCreationDto data, String userId) throws NotFoundException
+            , ForbiddenException {
+        Article article = articleRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Article not found"));
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
         article.setTitle(data.getTitle());
@@ -70,29 +87,36 @@ public class ArticleServiceImpl implements ArticleService {
         if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
             throw new ForbiddenException("Article edit not allowed");
         }
+        this.logger.info("User {} updated article {}", userId, article.getId());
         articleRepository.save(article);
-        return articleToDto(article);
+        return article.getListItemDto();
     }
 
-
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public void deleteArticle(String articleId, String userId) throws NotFoundException, ForbiddenException {
-        Article article = articleRepository.findByIdAndDeletedFalse(articleId).orElseThrow(() -> new NotFoundException("Article not found"));
+        Article article = articleRepository.findByIdAndDeletedFalse(articleId)
+                .orElseThrow(() -> new NotFoundException("Article not found"));
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
         if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
             throw new ForbiddenException("Article edit not allowed");
         }
-        article.setDeleted(true);
+        this.logger.info("User {} deleted article {}", userId, article.getId());
+        article.delete();
         articleRepository.save(article);
     }
 
+    /**
+     * Transform article list to DTO list
+     *
+     * @param articles list of articles
+     * @return list of DTOs
+     */
     private List<ArticleListItemDto> articleToListDto(List<Article> articles) {
-        return articles.stream().map((this::articleToDto)).toList();
-    }
-
-    private ArticleListItemDto articleToDto(Article article) {
-        return new ArticleListItemDto(article.getId(), article.getTitle(), article.getSection().getId(), article.getCreatedBy(), article.getIsPrivate(), article.getCategories());
+        return articles.stream().map(Article::getListItemDto).toList();
     }
 }

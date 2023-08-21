@@ -9,78 +9,57 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @DataJpaTest
 class ArticleRepositoryTest {
+    private final String publicArticleId = "pub-article-id";
+    private final String privateArticleId = "private-article-id";
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
     private TestEntityManager testEntityManager;
+    private Article pubArticle;
+    private Pageable page;
 
     @BeforeEach
     void setUp() {
-        Article article = Article.builder()
-                .id("some-uid-two")
-                .build();
-        article.setDeleted(false);
-        testEntityManager.persist((article));
+        pubArticle = Article.builder().isPrivate(false).build();
+        String userId = "user-id";
+        pubArticle.create(userId);
+        testEntityManager.persist((pubArticle));
+        Article privArticle = Article.builder().isPrivate(true).build();
+        privArticle.create(userId);
+        testEntityManager.persist(privArticle);
+
+        page = PageRequest.of(0, 10);
     }
 
     @Test
-    @DisplayName("Create a new article")
-    public void createArticle() {
-        Article article = Article.builder()
-                .build();
-        article.setDeleted(false);
-        articleRepository.save(article);
+    @DisplayName("Find public articles")
+    public void findPublicArticles() {
+        List<Article> articles = articleRepository.findPublicArticles(page);
+        assertEquals(articles.size(), 1);
+        assertEquals(articles.get(0), pubArticle);
+    }
+
+    @Test
+    @DisplayName("Find public articles without deleted")
+    public void findPublicArticlesWithoutDeleted() {
+        pubArticle.delete();
+
+        List<Article> articles = articleRepository.findPublicArticles(page);
+        assertEquals(articles.size(), 0);
     }
 
     @Test
     @DisplayName("Return article based on Id")
-    public void returnArticleWithId() {
-        Optional<Article> article = articleRepository.findByIdAndDeletedFalse(("some-uid-two"));
-        assertNotEquals(null, article);
-        article.ifPresent(value -> assertEquals("some-uid-two", value.getId()));
-    }
-
-    @Test
-    @DisplayName("Find all with pagination")
-    public void findWithPagination() {
-        Pageable firstPage = PageRequest.of(0, 3);
-        Pageable secondPage = PageRequest.of(1, 2);
-        Pageable sortedPage = PageRequest.of(1, 2, Sort.by("title"));
-        List<Article> sorted = articleRepository.findAll(firstPage).getContent();
-        Sort sort = Sort.by("title");
-    }
-
-    @Test
-    void findByDeletedFalse() {
-    }
-
-    @Test
-    void findAllByDeletedFalse() {
-    }
-
-    @Test
-    void findByIdAndDeletedFalse() {
-    }
-
-    @Test
-    void findByIdAndDeletedTrue() {
-    }
-
-    @Test
-    void findByDeletedTrue() {
-    }
-
-    @Test
-    void findByTitleAndDeletedFalse() {
+    public void findByIdAndDeletedFalse() {
+        Optional<Article> article = articleRepository.findByIdAndDeletedFalse((pubArticle.getId()));
+        article.ifPresent(value -> assertEquals(pubArticle, value));
     }
 }

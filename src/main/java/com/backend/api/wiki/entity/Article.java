@@ -2,12 +2,18 @@ package com.backend.api.wiki.entity;
 
 import com.backend.api.core.entity.OwnedEntity;
 import com.backend.api.core.entity.SoftDeletableEntity;
+import com.backend.api.wiki.model.ArticleCreationDto;
+import com.backend.api.wiki.model.ArticleListItemDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
+
 import java.util.List;
 
+/**
+ * Article entity representing a set of sections either private or public
+ */
 @Data
 @Entity
 @Builder
@@ -27,10 +33,8 @@ public class Article extends OwnedEntity {
     private Boolean isPrivate = Boolean.FALSE;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "categories",
-            joinColumns = @JoinColumn(name = "article_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @JoinTable(name = "categories", joinColumns = @JoinColumn(name = "article_id"), inverseJoinColumns =
+    @JoinColumn(name = "category_id"))
     private List<Category> categories;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -38,10 +42,15 @@ public class Article extends OwnedEntity {
     @JsonIgnore
     private Section section;
 
-    @Override
-    public String toString() {
-        return "Article{" +
-                "id=" + id +
-                '}';
+    public Article(ArticleCreationDto request, Section section, String userId) {
+        this.title = request.getTitle();
+        this.section = section;
+        this.isPrivate = request.getIsPrivate();
+        this.create(userId);
+    }
+
+    public ArticleListItemDto getListItemDto() {
+        return new ArticleListItemDto(this.getId(), this.getTitle(), this.getSection()
+                .getId(), this.getCreatedBy(), this.getIsPrivate(), this.getCategories());
     }
 }

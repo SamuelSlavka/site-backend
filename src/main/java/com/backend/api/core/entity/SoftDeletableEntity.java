@@ -18,4 +18,9 @@ public class SoftDeletableEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt = null;
 
+
+    public void delete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

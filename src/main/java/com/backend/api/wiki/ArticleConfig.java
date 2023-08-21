@@ -40,7 +40,8 @@ public class ArticleConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    CommandLineRunner commandLineRunner(SectionRepository sectionRepository ,ArticleRepository articleRepository, CategoryRepository categoryRepository) {
+    CommandLineRunner commandLineRunner(SectionRepository sectionRepository, ArticleRepository articleRepository,
+                                        CategoryRepository categoryRepository) {
         return args -> {
             Article tmpArticle = Article.builder().isPrivate(false).title("java tbd").build();
 
@@ -48,21 +49,22 @@ public class ArticleConfig implements WebMvcConfigurer {
 
             Section tmpSection = Section.builder().sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
             tmpSection.setArticle(tmpArticle);
-            Revision tmpRevision = Revision.builder().text(
-                    """
-                            ## Java
-                                final - cannot be modified or extended
-                                static - the property belongs to the class not instance and is shared by all\s
-                                                        
-                            """
-            ).build();
+            Revision tmpRevision = Revision.builder().title("title").text("""
+                    ## Java
+                        final - cannot be modified or extended
+                        static - the property belongs to the class not instance and is shared by all\s
+                                                
+                    """).build();
 
-            Revision tmpRevision2 = Revision.builder().text("rev2").build();
-            Revision tmpRevision3 = Revision.builder().text("re33").build();
-            Revision tmpRevision4 = Revision.builder().text("re44").build();
-            Section tmpSection2 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision2).revisions(List.of(tmpRevision2)).sectionOrder(1).depth(1).build();
-            Section tmpSection3 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision3).revisions(List.of(tmpRevision3)).sectionOrder(1).depth(2).build();
-            Section tmpSection4 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision4).revisions(List.of(tmpRevision4)).sectionOrder(2).depth(2).build();
+            Revision tmpRevision2 = Revision.builder().title("title").text("rev2").build();
+            Revision tmpRevision3 = Revision.builder().title("title").text("re33").build();
+            Revision tmpRevision4 = Revision.builder().title("title").text("re44").build();
+            Section tmpSection2 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision2)
+                    .revisions(List.of(tmpRevision2)).sectionOrder(1).depth(1).build();
+            Section tmpSection3 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision3)
+                    .revisions(List.of(tmpRevision3)).sectionOrder(1).depth(2).build();
+            Section tmpSection4 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision4)
+                    .revisions(List.of(tmpRevision4)).sectionOrder(2).depth(2).build();
             tmpSection2.setCreatedAt(LocalDateTime.now());
             tmpSection3.setCreatedAt(LocalDateTime.now());
             tmpSection3.setSuperSection(tmpSection2);
@@ -76,8 +78,8 @@ public class ArticleConfig implements WebMvcConfigurer {
             tmpSection3.setArticle(tmpArticle);
             tmpSection4.setArticle(tmpArticle);
 
-            subs2.addAll(List.of( tmpSection3, tmpSection4 ));
-            subs.add( tmpSection2 );
+            subs2.addAll(List.of(tmpSection3, tmpSection4));
+            subs.add(tmpSection2);
             tmpSection2.setSubsections(subs2);
             tmpSection.setSubsections(subs);
 

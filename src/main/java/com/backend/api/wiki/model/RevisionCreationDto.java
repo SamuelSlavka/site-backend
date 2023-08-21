@@ -2,13 +2,13 @@ package com.backend.api.wiki.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class RevisionCreationDto {
+    @NonNull
     private String title;
+    @NonNull
     private String text;
-
 }

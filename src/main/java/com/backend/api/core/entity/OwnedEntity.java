@@ -18,4 +18,10 @@ public class OwnedEntity extends SoftDeletableEntity{
     @PastOrPresent
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void create(String createdBy) {
+        this.createdBy = createdBy;
+        this.createdAt = LocalDateTime.now();
+        this.setDeleted(false);
+    }
 }

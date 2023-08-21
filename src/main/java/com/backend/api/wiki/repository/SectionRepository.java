@@ -3,7 +3,6 @@ package com.backend.api.wiki.repository;
 import com.backend.api.core.repository.OwnedRepository;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.projection.SectionProjection;
-import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,6 +13,14 @@ import java.util.Optional;
 @Repository
 public interface SectionRepository extends OwnedRepository<Section, String> {
 
+    /**
+     * Finds a list of sections, that contains parent specified by id and all of its descendants until specified
+     * depth limit
+     *
+     * @param id    parent section id
+     * @param limit max depth of children sections
+     * @return returns list of sections with parent and descendants ordered by order and depth
+     */
     @Query(nativeQuery = true, value = """
             WITH RECURSIVE section_recursive AS (
                 SELECT
@@ -47,10 +54,6 @@ public interface SectionRepository extends OwnedRepository<Section, String> {
                 ORDER BY sr.depth, sr.section_order
                         """)
     List<SectionProjection> findRecursiveById(String id, int limit);
-
-    @Override
-    @Nonnull
-    List<Section> findAll();
 
     Optional<Section> findByIdAndDeletedFalse(@NotNull String id);
 }

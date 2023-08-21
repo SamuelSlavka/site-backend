@@ -23,148 +23,196 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @inheritDoc
+ */
 @Service
 public class SectionServiceImpl implements SectionService {
-
     private final Logger logger = LoggerFactory.getLogger((SectionServiceImpl.class));
-
-    private final ArticleRepository articleRepository;
-
-    private final SectionRepository sectionRepository;
-
     @Autowired
-    public HttpServletRequest servletRequest;
-
-
+    private ArticleRepository articleRepository;
     @Autowired
-    public SectionServiceImpl(ArticleRepository articleRepository, SectionRepository sectionRepository) {
-        this.articleRepository = articleRepository;
-        this.sectionRepository = sectionRepository;
-    }
+    private SectionRepository sectionRepository;
+    @Autowired
+    private HttpServletRequest servletRequest;
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
-    public List<SectionDto> getSection(String id) throws NotFoundException, ForbiddenException {
-        List<SectionProjection> sectionProjectionList = sectionRepository.findRecursiveById(id, 10);
-        this.logger.info("Got " + sectionProjectionList.size() + " Sections");
-
-        if (sectionProjectionList.isEmpty()) {
-            throw new NotFoundException("Section not found");
-        }
-
-        List<SectionDto> sectionDtoList = sectionProjectionList.stream().map(this::SectionProjectionToDto).toList();
+    public List<SectionDto> getPublicSection(String sectionId) throws NotFoundException, ForbiddenException {
+        List<SectionDto> sectionDtoList = getSectionList(sectionId, 10);
         SectionDto head = sectionDtoList.get(0);
 
-        if (Objects.isNull(head.getArticle()) || this.isAllowed(head.getArticle())) {
+        if (Objects.isNull(head.getArticle()) || this.cantReadPublic(head.getArticle())) {
             throw new ForbiddenException("You cant view this section");
         }
 
+        this.logger.info("Got section {} and {} subsections", sectionId, sectionDtoList.size());
         return sectionDtoList;
     }
 
-
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public List<SectionDto> getSection(String sectionId, String userId) throws NotFoundException, ForbiddenException {
         this.logger.info("User {}", userId);
-        List<SectionDto> sectionList = this.getSection(sectionId);
+        List<SectionDto> sectionList = this.getSectionList(sectionId, 10);
         SectionDto head = sectionList.get(0);
 
-        if (this.isAllowed(head.getArticle(), userId)) {
+        if (this.cantReadAny(head.getArticle(), userId)) {
             throw new ForbiddenException("You cant view this section");
         }
+        this.logger.info("User {} got section {} and {} subsections", userId, sectionId, sectionList.size());
         return sectionList;
     }
 
-
-    private SectionDto SectionProjectionToDto(SectionProjection proj) {
-        return new SectionDto(proj.getId(),
-                proj.getLatestRevision(),
-                proj.getSuperSection(),
-                proj.getSectionOrder(),
-                proj.getDepth(),
-                proj.getCreatedBy(),
-                proj.getArticle(),
-                proj.getText(),
-                proj.getTitle()
-        );
-    }
-
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public SectionDto createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
-        Section superSection = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
-        this.logger.info("Started creating");
-        if (superSection.getDepth() == 3) {
-            throw new NotAllowedException("Section depth is too low");
-        }
+        Section superSection = sectionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Section not found"));
+        Set<Section> subSections = superSection.getSubsections();
 
-        if (this.isAllowed(superSection, userId)) {
+        if (this.cantWrite(superSection, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
-        Revision revision = new Revision(revisionContent.getText(), revisionContent.getTitle());
-        this.logger.info("Rev");
-        Set<Section> sections = superSection.getSubsections();
-        Section newSection = new Section(revision, superSection);
-        this.logger.info("Sec");
-        sections.add(newSection);
-        superSection.setSubsections(sections);
-        this.logger.info("Sub");
+
+        Revision revision = new Revision(revisionContent);
+        revision.create(userId);
+        Section newSection = new Section(revision, superSection, userId);
+        newSection.create(userId);
+
+        subSections.add(newSection);
+        superSection.setSubsections(subSections);
+
         sectionRepository.save(newSection);
         sectionRepository.flush();
+        this.logger.info("User {} created subsection {}", userId, newSection.getId());
         return new SectionDto(newSection);
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
     public SectionDto createRevision(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, ForbiddenException {
-        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+        Section section = sectionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Section not found"));
+        List<Revision> revisions = section.getRevisions();
 
-        if (this.isAllowed(section, userId)) {
+        if (this.cantWrite(section, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
 
-        Revision revision = Revision.builder().text(revisionContent.getText()).title(revisionContent.getTitle()).build();
-        List<Revision> revisions = section.getRevisions();
+        Revision revision = new Revision(revisionContent);
+
         revisions.add(revision);
         section.setRevisions(revisions);
         section.setLatestRevision(revision);
         sectionRepository.flush();
+        this.logger.info("User {} updated revision {}", userId, revision.getId());
         return new SectionDto(section);
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @Transactional
-    public void deleteSection(String id, String userId) throws NotFoundException, NotAllowedException, ForbiddenException {
-        Section section = sectionRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new NotFoundException("Section not found"));
+    public void deleteSection(String id, String userId) throws NotFoundException, NotAllowedException,
+            ForbiddenException {
+        Section section = sectionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundException("Section not found"));
 
-        if (this.isAllowed(section, userId)) {
+        if (this.cantWrite(section, userId)) {
             throw new ForbiddenException("You cant delete this section");
         }
 
         if (section.getDepth() == 0) {
             throw new NotAllowedException("Cant delete top section");
         }
-        section.setDeleted(true);
+
+        section.delete();
         sectionRepository.save(section);
+        this.logger.info("User {} deleted section {}", userId, section.getId());
     }
 
 
-    private boolean isAllowed(Section section, String userId) {
+    /**
+     * Checks if the user has right for editing
+     *
+     * @param section section that user is accessing
+     * @param userId  user id
+     * @return returns true if user is allowed
+     */
+    private boolean cantWrite(Section section, String userId) {
         Article article = section.getArticle();
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
-        return article.getIsPrivate() && !article.getCreatedBy().equals(userId) && !isAdmin;
+        return !article.getCreatedBy().equals(userId) && !isAdmin;
     }
 
-    private boolean isAllowed(String article_id, String userId) {
+    /**
+     * Checks if the user has right for editing
+     *
+     * @param article_id article id containing this section
+     * @param userId     user id
+     * @return returns true if user is allowed
+     */
+    private boolean cantReadAny(String article_id, String userId) {
         Article article = this.articleRepository.getReferenceById(article_id);
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
-        return article.getIsPrivate() && !article.getCreatedBy().equals(userId) && !isAdmin;
+        return !(article.getIsPrivate() && article.getCreatedBy().equals(userId)) && !isAdmin;
     }
 
-    private boolean isAllowed(String article_id) {
+    /**
+     * Checks if the user has right for editing
+     *
+     * @param article_id article id containing this section
+     * @return returns true if user is allowed
+     */
+    private boolean cantReadPublic(String article_id) {
         Article article = this.articleRepository.getReferenceById(article_id);
-        boolean isAdmin = !Objects.isNull(this.servletRequest) && this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+        boolean isAdmin =
+                !Objects.isNull(this.servletRequest) && this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
         return article.getIsPrivate() && !isAdmin;
     }
+
+    /**
+     * Transform Section Projection to Dto
+     *
+     * @param proj input projection
+     * @return returns section DTO
+     */
+    public SectionDto sectionProjectionToDto(SectionProjection proj) {
+        return new SectionDto(proj.getId(), proj.getLatestRevision(), proj.getSuperSection(), proj.getSectionOrder(),
+                proj.getDepth(), proj.getCreatedBy(), proj.getArticle(), proj.getText(), proj.getTitle());
+    }
+
+
+    /**
+     * Fetches section list from repository and transforms it into Dto list
+     *
+     * @param sectionId parent section id
+     * @param limit     depth limit
+     * @return returns list of sections containing parent and descendants
+     * @throws NotFoundException thrown when no section was found
+     */
+    private List<SectionDto> getSectionList(String sectionId, Integer limit) throws NotFoundException {
+        List<SectionProjection> sectionProjectionList = sectionRepository.findRecursiveById(sectionId, limit);
+
+        if (sectionProjectionList.isEmpty()) {
+            throw new NotFoundException("Section not found");
+        }
+
+        return sectionProjectionList.stream().map(this::sectionProjectionToDto).toList();
+    }
+
 }

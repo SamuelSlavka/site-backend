@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,11 +24,11 @@ public class SectionDto {
     public SectionDto(Section section) {
         this.id = section.getId();
         this.latestRevision = section.getLatestRevision().getId();
-        this.superSection = section.getSuperSection().getId();
+        this.superSection = Objects.isNull(section.getSuperSection()) ? null : section.getSuperSection().getId();
         this.sectionOrder = section.getSectionOrder();
         this.depth = section.getDepth();
         this.createdBy = section.getCreatedBy();
-        this.article = section.getArticle().getId();
+        this.article = Objects.isNull(section.getArticle()) ? null : section.getArticle().getId();
         this.text = section.getLatestRevision().getText();
         this.title = section.getLatestRevision().getTitle();
     }
