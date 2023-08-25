@@ -5,6 +5,7 @@ import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.entity.Category;
 import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
+import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.repository.SectionRepository;
@@ -47,8 +48,8 @@ public class ArticleConfig implements WebMvcConfigurer {
 
             Category tmpCategory = Category.builder().categoryName("catName").build();
 
-            Section tmpSection = Section.builder().sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
-            tmpSection.setArticle(tmpArticle);
+            Section sec = Section.builder().sectionOrder(0).depth(0).subsections(new HashSet<>()).build();
+            sec.setArticle(tmpArticle);
             Revision tmpRevision = Revision.builder().title("title").text("""
                     ## Java
                         final - cannot be modified or extended
@@ -56,38 +57,55 @@ public class ArticleConfig implements WebMvcConfigurer {
                                                 
                     """).build();
 
-            Revision tmpRevision2 = Revision.builder().title("title").text("rev2").build();
-            Revision tmpRevision3 = Revision.builder().title("title").text("re33").build();
-            Revision tmpRevision4 = Revision.builder().title("title").text("re44").build();
-            Section tmpSection2 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision2)
-                    .revisions(List.of(tmpRevision2)).sectionOrder(1).depth(1).build();
-            Section tmpSection3 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision3)
-                    .revisions(List.of(tmpRevision3)).sectionOrder(1).depth(2).build();
-            Section tmpSection4 = Section.builder().subsections(new HashSet<>()).latestRevision(tmpRevision4)
-                    .revisions(List.of(tmpRevision4)).sectionOrder(2).depth(2).build();
-            tmpSection2.setCreatedAt(LocalDateTime.now());
-            tmpSection3.setCreatedAt(LocalDateTime.now());
-            tmpSection3.setSuperSection(tmpSection2);
-            tmpSection4.setSuperSection(tmpSection2);
-            tmpSection2.setSuperSection(tmpSection);
+            Revision rev2 = Revision.builder().title("title").text("rev2").build();
+            Revision rev3 = Revision.builder().title("title").text("re33").build();
+            Revision rev4 = Revision.builder().title("title").text("re44").build();
+            Section sec2 = Section.builder().subsections(new HashSet<>()).latestRevision(rev2).revisions(List.of(rev2))
+                    .sectionOrder(0).depth(1).build();
+            Section sec3 = Section.builder().subsections(new HashSet<>()).latestRevision(rev3).revisions(List.of(rev3))
+                    .sectionOrder(0).depth(2).build();
+            Section sec4 = Section.builder().subsections(new HashSet<>()).latestRevision(rev4).revisions(List.of(rev4))
+                    .sectionOrder(1).depth(2).build();
+            Section sec5 = Section.builder().subsections(new HashSet<>())
+                    .latestRevision(new Revision(new RevisionCreationDto("a", "b"))).sectionOrder(1).depth(1).build();
+            Section sec6 = Section.builder().subsections(new HashSet<>()).sectionOrder(2).depth(1)
+                    .latestRevision(new Revision(new RevisionCreationDto("a", "b"))).build();
+            Section sec7 = Section.builder().subsections(new HashSet<>()).sectionOrder(3).depth(1)
+                    .latestRevision(new Revision(new RevisionCreationDto("a", "b"))).build();
+            Section sec8 = Section.builder().subsections(new HashSet<>()).sectionOrder(4).depth(1)
+                    .latestRevision(new Revision(new RevisionCreationDto("a", "b"))).build();
+            sec2.setCreatedAt(LocalDateTime.now());
+            sec3.setCreatedAt(LocalDateTime.now());
+            sec5.create("creator");
+            sec6.create("creator");
+            sec7.create("creator");
+            sec8.create("creator");
 
-            Set<Section> subs2 = tmpSection2.getSubsections();
-            Set<Section> subs = tmpSection.getSubsections();
+            sec3.setSuperSection(sec2);
+            sec4.setSuperSection(sec2);
+            sec2.setSuperSection(sec);
+            sec5.setSuperSection(sec);
+            sec6.setSuperSection(sec);
+            sec7.setSuperSection(sec);
+            sec8.setSuperSection(sec);
 
-            tmpSection2.setArticle(tmpArticle);
-            tmpSection3.setArticle(tmpArticle);
-            tmpSection4.setArticle(tmpArticle);
+            Set<Section> subs2 = sec2.getSubsections();
+            Set<Section> subs = sec.getSubsections();
 
-            subs2.addAll(List.of(tmpSection3, tmpSection4));
-            subs.add(tmpSection2);
-            tmpSection2.setSubsections(subs2);
-            tmpSection.setSubsections(subs);
+            sec2.setArticle(tmpArticle);
+            sec3.setArticle(tmpArticle);
+            sec4.setArticle(tmpArticle);
 
-            tmpSection.setCreatedAt(LocalDateTime.now());
-            tmpSection.setRevisions(List.of(tmpRevision));
-            tmpSection.setLatestRevision(tmpRevision);
+            subs2.addAll(List.of(sec3, sec4));
+            subs.addAll(List.of(sec2, sec5, sec6, sec7, sec8));
+            sec2.setSubsections(subs2);
+            sec.setSubsections(subs);
+
+            sec.setCreatedAt(LocalDateTime.now());
+            sec.setRevisions(List.of(tmpRevision));
+            sec.setLatestRevision(tmpRevision);
             tmpArticle.setCategories(List.of(tmpCategory));
-            tmpArticle.setSection(tmpSection);
+            tmpArticle.setSection(sec);
             articleRepository.save(tmpArticle);
             articleRepository.flush();
         };

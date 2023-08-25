@@ -1,6 +1,6 @@
 package com.backend.api.wiki.controller;
 
-import com.backend.api.utils.Utils;
+import com.backend.api.core.model.PaginationDto;
 import com.backend.api.wiki.entity.Article;
 import com.backend.api.wiki.model.ArticleCreationDto;
 import com.backend.api.wiki.model.ArticleListItemDto;
@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
 
+import static com.backend.api.utils.Utils.getMockJwtToken;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -55,50 +56,54 @@ class ArticleControllerTest {
     private Jwt jwt;
     private Article article;
     private ArticleListItemDto articleDto;
+    private PaginationDto page;
 
 
     @BeforeEach
     void setUp() {
+        page = new PaginationDto(0, 10);
         article = Article.builder().id(articleId).title("title").isPrivate(false).build();
 
-        articleDto = new ArticleListItemDto(articleId, "title", "section", userId, false, List.of());
+        articleDto = new ArticleListItemDto(articleId, "title", "section", userId, false, false, List.of());
         SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
     @DisplayName("Return articles based on user Id")
     void getUserArticles() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
-        when(articleService.getUserArticles(0, userId)).thenReturn(List.of(articleDto));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
+        when(articleService.getUserArticles(page, userId)).thenReturn(List.of(articleDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].title").value((article.getTitle())));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&offset=10")
+                        .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value((article.getTitle())));
     }
 
     @Test
     @DisplayName("Return article based isPublic flag")
     void getPublicArticles() throws Exception {
-        when(articleService.getPublicArticles(0)).thenReturn(List.of(articleDto));
+        when(articleService.getPublicArticles(page)).thenReturn(List.of(articleDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andExpect(jsonPath("$[0].title").value((article.getTitle())));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&offset=10")
+                        .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value((article.getTitle())));
     }
 
     @Test
     @DisplayName("Create article")
     void createArticle() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(post("/api/v1/articles").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"title\", \"isPrivate\": false}")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value((article.getTitle())));
+                        .content("{\"title\": \"title\", \"isPrivate\": false, \"isPubliclyEditable\": false}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.title").value((article.getTitle())));
     }
 
     @Test
     @DisplayName("Fail creating article without body")
     void createArticleWithoutBody() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(post("/api/v1/articles").contentType(MediaType.APPLICATION_JSON).content(""))
@@ -108,7 +113,7 @@ class ArticleControllerTest {
     @Test
     @DisplayName("Fail creating article")
     void createArticleWithoutTitle() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.createArticle(any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(post("/api/v1/articles").contentType(MediaType.APPLICATION_JSON)
@@ -119,18 +124,18 @@ class ArticleControllerTest {
     @Test
     @DisplayName("Edit article")
     void editArticle() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(put("/api/v1/articles/" + articleId).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"title\", \"isPrivate\": false}")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value((article.getTitle())));
+                        .content("{\"title\": \"title\", \"isPrivate\": false, \"isPubliclyEditable\": false}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.title").value((article.getTitle())));
     }
 
     @Test
     @DisplayName("Fail editing article without body")
     void editArticleWithoutBody() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(put("/api/v1/articles/" + articleId).contentType(MediaType.APPLICATION_JSON))
@@ -140,7 +145,7 @@ class ArticleControllerTest {
     @Test
     @DisplayName("Fail editing article")
     void editArticleWithoutTitle() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.editArticle(anyString(), any(ArticleCreationDto.class), anyString())).thenReturn(articleDto);
 
         mockMvc.perform(put("/api/v1/articles/" + articleId).contentType(MediaType.APPLICATION_JSON)
@@ -151,7 +156,7 @@ class ArticleControllerTest {
     @Test
     @DisplayName("Delete article")
     void deleteArticle() throws Exception {
-        given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
+        given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         mockMvc.perform(delete("/api/v1/articles/" + articleId)).andExpect(status().isOk());
     }
 }

@@ -5,6 +5,7 @@ import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
+import com.backend.api.wiki.model.SectionPaginationDto;
 import com.backend.api.wiki.service.SectionService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -31,6 +32,9 @@ public class SectionController {
     /**
      * Get endpoint that fetches list of all subsections of given section until desired depth
      *
+     * @param limit     depth limit for searching subsections
+     * @param page      page number
+     * @param pageSize  size of page
      * @param sectionId uid of the top level section
      * @param principal autowired keycloak auth principal with user data
      * @return returns list of sections
@@ -38,17 +42,20 @@ public class SectionController {
      * @throws ForbiddenException thrown if the user doesn't have sufficient rights
      */
     @GetMapping(path = "/id/{sectionId}")
-    public List<SectionDto> getSection(@PathVariable("sectionId") String sectionId,
+    public List<SectionDto> getSection(@Valid @RequestParam Integer page, @Valid @RequestParam Integer pageSize,
+                                       @Valid @RequestParam Integer limit, @Valid @RequestParam Integer initDepth,
+                                       @PathVariable("sectionId") String sectionId,
                                        @AuthenticationPrincipal Jwt principal) throws NotFoundException,
             ForbiddenException {
+        SectionPaginationDto pagination = new SectionPaginationDto(page, pageSize, limit, initDepth);
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
-            List<SectionDto> section = sectionService.getSection(sectionId, userId);
+            List<SectionDto> section = sectionService.getSection(sectionId, userId, pagination);
             this.logger.info("Section {} fetched by {}", sectionId, userId);
             return section;
 
         } else {
-            return sectionService.getPublicSection(sectionId);
+            return sectionService.getPublicSection(sectionId, pagination);
         }
     }
 
@@ -79,20 +86,20 @@ public class SectionController {
     }
 
     /**
-     * Put endpoint that creates new revision in given section
+     * Put endpoint that edits section by creating new revision
      *
      * @param sectionId selected section id
      * @param request   request body obj that contains initial revision values
      * @param principal autowired keycloak auth principal with user data
      * @return returns edited subsection
      * @throws NotFoundException   thrown if the article is not found
-     * @throws NotAllowedException thrown if the the action is not allowed (e.g. too deep)
+     * @throws NotAllowedException thrown if the action is not allowed (e.g. too deep)
      * @throws ForbiddenException  thrown if the user doesn't have sufficient rights
      */
     @PutMapping(path = "/id/{sectionId}")
-    public SectionDto createRevision(@PathVariable("sectionId") String sectionId,
-                                     @Valid @RequestBody RevisionCreationDto request,
-                                     @AuthenticationPrincipal Jwt principal) throws NotFoundException,
+    public SectionDto editSection(@PathVariable("sectionId") String sectionId,
+                                  @Valid @RequestBody RevisionCreationDto request,
+                                  @AuthenticationPrincipal Jwt principal) throws NotFoundException,
             NotAllowedException, ForbiddenException {
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
@@ -110,7 +117,7 @@ public class SectionController {
      * @param principal autowired keycloak auth principal with user data
      * @return returns void
      * @throws NotFoundException   thrown if the article is not found
-     * @throws NotAllowedException thrown if the the action is not allowed (e.g. too deep)
+     * @throws NotAllowedException thrown if the action is not allowed (e.g. too deep)
      * @throws ForbiddenException  thrown if the user doesn't have sufficient rights
      */
     @DeleteMapping(path = "/id/{sectionId}")

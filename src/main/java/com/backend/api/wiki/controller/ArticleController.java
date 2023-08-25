@@ -1,5 +1,6 @@
 package com.backend.api.wiki.controller;
 
+import com.backend.api.core.model.PaginationDto;
 import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.ArticleCreationDto;
@@ -32,20 +33,23 @@ public class ArticleController {
      * Get endpoint that fetches list of articles
      *
      * @param page      page offset from which the articles should come
+     * @param pageSize  number of items to return
      * @param principal autowired keycloak auth principal with user data
      * @return returns body of HTTP response with list of articles
      */
     @GetMapping
     public List<ArticleListItemDto> getArticles(@Valid @RequestParam Integer page,
+                                                @Valid @RequestParam Integer pageSize,
                                                 @AuthenticationPrincipal Jwt principal) {
+        PaginationDto pagination = new PaginationDto(page, pageSize);
         if (Objects.nonNull(principal)) {
             String userId = principal.getSubject();
             this.logger.info("User {} started fetched articles", userId);
-            return articleService.getUserArticles(page, userId);
+            return articleService.getUserArticles(pagination, userId);
 
         } else {
             this.logger.error("Unknown user fetched articles");
-            return articleService.getPublicArticles(page);
+            return articleService.getPublicArticles(pagination);
         }
     }
 

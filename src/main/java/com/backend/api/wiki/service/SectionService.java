@@ -5,6 +5,7 @@ import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
+import com.backend.api.wiki.model.SectionPaginationDto;
 
 import java.util.List;
 
@@ -20,18 +21,20 @@ public interface SectionService {
      * @throws NotFoundException  thrown when article is not found
      * @throws ForbiddenException thrown when user doesn't have permission for this action
      */
-    List<SectionDto> getPublicSection(String id) throws NotFoundException, ForbiddenException;
+    List<SectionDto> getPublicSection(String id, SectionPaginationDto page) throws NotFoundException,
+            ForbiddenException;
 
     /**
      * Gets section and its subsections for logged user
      *
-     * @param sectionId top level section id
-     * @param userId    id of logged user
+     * @param sectionId  top level section id
+     * @param userId     id of logged user
+     * @param pagination page and offset and depth limit
      * @return returns list of sections ordered by their depth and creation order
      * @throws NotFoundException  thrown when article is not found
      * @throws ForbiddenException thrown when user doesn't have permission for this action
      */
-    List<SectionDto> getSection(String sectionId, String userId) throws NotFoundException, ForbiddenException;
+    List<SectionDto> getSection(String sectionId, String userId, SectionPaginationDto pagination) throws NotFoundException, ForbiddenException;
 
     /**
      * Creates a new subsection
@@ -40,11 +43,10 @@ public interface SectionService {
      * @param revisionContent object with first revision values
      * @param userId          id of logged user
      * @return returns new subsection
-     * @throws NotAllowedException thrown if the user cant create subsections
-     * @throws NotFoundException   thrown when article is not found
-     * @throws ForbiddenException  thrown when user doesn't have permission for this action
+     * @throws NotFoundException  thrown when article is not found
+     * @throws ForbiddenException thrown when user doesn't have permission for this action
      */
-    SectionDto createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, NotAllowedException, ForbiddenException;
+    SectionDto createSubSection(String id, RevisionCreationDto revisionContent, String userId) throws NotFoundException, ForbiddenException;
 
     /**
      * Creates a new revision on an existing section

@@ -16,5 +16,6 @@ public class ArticleListItemDto {
     private String section;
     private String createdBy;
     private Boolean isPrivate;
+    private Boolean isPubliclyEditable;
     private List<Category> categories;
 }

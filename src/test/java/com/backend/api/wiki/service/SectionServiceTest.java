@@ -8,12 +8,14 @@ import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
+import com.backend.api.wiki.model.SectionPaginationDto;
 import com.backend.api.wiki.projection.SectionProjection;
 import com.backend.api.wiki.projection.SectionProjectionImpl;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.SectionRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -39,6 +41,7 @@ class SectionServiceTest {
     Article article;
     Article privateArticle;
     RevisionCreationDto revisionCreation;
+    SectionPaginationDto page;
 
     @Mock
     private ArticleRepository articleRepository;
@@ -54,6 +57,7 @@ class SectionServiceTest {
 
     @BeforeEach
     public void setUp() {
+        page = new SectionPaginationDto(0, 10, 10, 0);
         MockitoAnnotations.openMocks(this);
         projection = new SectionProjectionImpl(sectionId, "rev", "super", 0, 0, userId, articleId, "text", "title");
         sectionDto = sectionService.sectionProjectionToDto(projection);
@@ -69,59 +73,110 @@ class SectionServiceTest {
     }
 
     @Test
+    @DisplayName("Get public section")
     void getPublicSection() throws ForbiddenException, NotFoundException {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
         when(articleRepository.getReferenceById(articleId)).thenReturn(article);
 
-        List<SectionDto> sections = this.sectionService.getPublicSection(sectionId);
+        List<SectionDto> sections = this.sectionService.getPublicSection(sectionId, page);
 
         assertEquals(sectionDto, sections.get(0));
-        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit);
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
     }
 
     @Test
+    @DisplayName("Get private section from public endpoint as admin")
+    void getPublicSectionPrivateArticleAdmin() throws ForbiddenException, NotFoundException {
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
+        when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
+
+        when(articleRepository.getReferenceById(articleId)).thenReturn(article);
+
+        List<SectionDto> sections = this.sectionService.getPublicSection(sectionId, page);
+
+        assertEquals(sectionDto, sections.get(0));
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
+    }
+
+
+    @Test
+    @DisplayName("Get unknown public section")
     void notFoundPublicSection() {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
         when(articleRepository.getReferenceById(articleId)).thenReturn(article);
-        assertThrows(NotFoundException.class, () -> this.sectionService.getPublicSection("other-id"));
-        verify(sectionRepository, times(1)).findRecursiveById("other-id", limit);
+        assertThrows(NotFoundException.class, () -> this.sectionService.getPublicSection("other-id", page));
+        verify(sectionRepository, times(1)).findRecursiveById("other-id", limit, 0, 0, 10);
     }
 
     @Test
+    @DisplayName("Get unknown public section")
     void notAllowedPublicSection() {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArticle);
-        assertThrows(ForbiddenException.class, () -> this.sectionService.getPublicSection(sectionId));
-        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit);
+        assertThrows(ForbiddenException.class, () -> this.sectionService.getPublicSection(sectionId, page));
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
     }
 
     @Test
+    @DisplayName("Get private section as logged")
     void getPrivateSection() throws ForbiddenException, NotFoundException {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArticle);
 
-        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId);
+        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId, page);
 
         assertEquals(sectionDto, sections.get(0));
-        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit);
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
     }
 
     @Test
+    @DisplayName("Get public section as logged")
+    void getPublicSectionLogged() throws ForbiddenException, NotFoundException {
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
+        when(articleRepository.getReferenceById(articleId)).thenReturn(article);
+
+        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId, page);
+
+        assertEquals(sectionDto, sections.get(0));
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
+    }
+
+    @Test
+    @DisplayName("Get public section as other logged")
+    void getPublicSectionAsOtherUser() throws ForbiddenException, NotFoundException {
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
+
+        Article privateArt = Article.builder().id(privateArticleId).isPrivate(false).build();
+        privateArt.create("other-user");
+
+        when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
+
+        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId, page);
+
+        assertEquals(sectionDto, sections.get(0));
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
+    }
+
+
+    @Test
+    @DisplayName("Get private section as other logged")
     void getPrivateSectionAsOtherUser() {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
 
         Article privateArt = Article.builder().id(privateArticleId).isPrivate(true).build();
         privateArt.create("other-user");
 
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
-        assertThrows(ForbiddenException.class, () -> this.sectionService.getSection(sectionId, userId));
+        assertThrows(ForbiddenException.class, () -> this.sectionService.getSection(sectionId, userId, page));
 
-        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit);
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
     }
 
+
     @Test
+    @DisplayName("Get private section as logged admin")
     void getPrivateSectionAsOtherAdmin() throws ForbiddenException, NotFoundException {
-        when(sectionRepository.findRecursiveById(sectionId, limit)).thenReturn(List.of(projection));
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
 
         Article privateArt = Article.builder().id(privateArticleId).isPrivate(true).build();
@@ -129,14 +184,33 @@ class SectionServiceTest {
 
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
 
-        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId);
+        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId, page);
 
         assertEquals(sectionDto, sections.get(0));
-        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit);
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
     }
 
     @Test
-    void createSubSection() throws ForbiddenException, NotAllowedException, NotFoundException {
+    @DisplayName("Get public section as logged admin")
+    void getPublicSectionAsOtherAdmin() throws ForbiddenException, NotFoundException {
+        when(sectionRepository.findRecursiveById(sectionId, limit, 0, 0, 10)).thenReturn(List.of(projection));
+        when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
+
+        Article privateArt = Article.builder().id(privateArticleId).isPrivate(false).build();
+        privateArt.create("other-user");
+
+        when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
+
+        List<SectionDto> sections = this.sectionService.getSection(sectionId, userId, page);
+
+        assertEquals(sectionDto, sections.get(0));
+        verify(sectionRepository, times(1)).findRecursiveById(sectionId, limit, 0, 0, 10);
+    }
+
+
+    @Test
+    @DisplayName("Create subsection as article creator")
+    void createSubSection() throws ForbiddenException, NotFoundException {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
 
@@ -153,13 +227,15 @@ class SectionServiceTest {
     }
 
     @Test
+    @DisplayName("Create subsection as other")
     void createSubSectionAsOther() {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
-        when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
 
-        Article privateArt = Article.builder().id(articleId).isPrivate(true).build();
+        Article privateArt = Article.builder().id(articleId).isPrivate(true).isPubliclyEditable(false).build();
         privateArt.create(userId);
+        section.setArticle(privateArt);
 
+        when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
 
         assertThrows(ForbiddenException.class, () -> this.sectionService.createSubSection(sectionId, revisionCreation
@@ -169,7 +245,8 @@ class SectionServiceTest {
     }
 
     @Test
-    void createSubSectionAsAdmin() throws ForbiddenException, NotAllowedException, NotFoundException {
+    @DisplayName("Create subsection as admin")
+    void createSubSectionAsAdmin() throws ForbiddenException, NotFoundException {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
 
@@ -187,6 +264,7 @@ class SectionServiceTest {
 
 
     @Test
+    @DisplayName("Create revision as article creator")
     void createRevision() throws ForbiddenException, NotFoundException {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
@@ -204,6 +282,7 @@ class SectionServiceTest {
     }
 
     @Test
+    @DisplayName("Delete subsection as article creator")
     void deleteSection() throws ForbiddenException, NotAllowedException, NotFoundException {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
 
@@ -222,6 +301,7 @@ class SectionServiceTest {
     }
 
     @Test
+    @DisplayName("Delete top level section")
     void deleteSectionTooDeep() {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));

@@ -5,6 +5,7 @@ import com.backend.api.wiki.entity.Revision;
 import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
+import com.backend.api.wiki.model.SectionPaginationDto;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.CategoryRepository;
 import com.backend.api.wiki.repository.SectionRepository;
@@ -56,9 +57,11 @@ class SectionControllerTest {
     private SectionDto sectionDto;
     private RevisionCreationDto revisionCreationDto;
     private Revision revision;
+    private SectionPaginationDto page;
 
     @BeforeEach
     void setUp() {
+        page = new SectionPaginationDto(0, 10, 10, 0);
         revisionCreationDto = new RevisionCreationDto("title", "text");
         revision = new Revision(revisionCreationDto);
         Section section = Section.builder().id(sectionId).latestRevision(revision).revisions(List.of(revision)).build();
@@ -73,9 +76,9 @@ class SectionControllerTest {
     @DisplayName("Return section based on user Id")
     void getUserSection() throws Exception {
         given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
-        when(sectionService.getSection(sectionId, userId)).thenReturn(List.of(sectionDto));
+        when(sectionService.getSection(sectionId, userId, page)).thenReturn(List.of(sectionDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&offset=10&limit=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((revision.getTitle())));
     }
@@ -83,9 +86,9 @@ class SectionControllerTest {
     @Test
     @DisplayName("Return section based on isPublic flag")
     void getPublicSection() throws Exception {
-        when(sectionService.getPublicSection(sectionId)).thenReturn(List.of(sectionDto));
+        when(sectionService.getPublicSection(sectionId, new SectionPaginationDto(0, 10, 10, 0))).thenReturn(List.of(sectionDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&pageSize=10&limit=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((revision.getTitle())));
     }

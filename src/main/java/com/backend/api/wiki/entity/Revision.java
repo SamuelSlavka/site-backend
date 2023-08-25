@@ -33,6 +33,12 @@ public class Revision extends OwnedEntity {
         this.title = revisionContent.getTitle();
     }
 
+    public Revision(RevisionCreationDto revisionContent, String user) {
+        this.text = revisionContent.getText();
+        this.title = revisionContent.getTitle();
+        this.create(user);
+    }
+
     @Override
     public String toString() {
         return String.format("Revision %s, title %s, text %s", this.id, this.text, this.title);

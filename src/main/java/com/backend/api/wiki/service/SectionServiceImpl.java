@@ -9,6 +9,7 @@ import com.backend.api.wiki.error.NotAllowedException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.model.SectionDto;
+import com.backend.api.wiki.model.SectionPaginationDto;
 import com.backend.api.wiki.projection.SectionProjection;
 import com.backend.api.wiki.repository.ArticleRepository;
 import com.backend.api.wiki.repository.SectionRepository;
@@ -41,11 +42,12 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     @Transactional
-    public List<SectionDto> getPublicSection(String sectionId) throws NotFoundException, ForbiddenException {
-        List<SectionDto> sectionDtoList = getSectionList(sectionId, 10);
+    public List<SectionDto> getPublicSection(String sectionId, SectionPaginationDto page) throws NotFoundException,
+            ForbiddenException {
+        List<SectionDto> sectionDtoList = getSectionList(sectionId, page);
         SectionDto head = sectionDtoList.get(0);
 
-        if (Objects.isNull(head.getArticle()) || this.cantReadPublic(head.getArticle())) {
+        if (Objects.isNull(head.getArticle()) || this.readPublicDisabled(head.getArticle())) {
             throw new ForbiddenException("You cant view this section");
         }
 
@@ -58,12 +60,12 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     @Transactional
-    public List<SectionDto> getSection(String sectionId, String userId) throws NotFoundException, ForbiddenException {
+    public List<SectionDto> getSection(String sectionId, String userId, SectionPaginationDto page) throws NotFoundException, ForbiddenException {
         this.logger.info("User {}", userId);
-        List<SectionDto> sectionList = this.getSectionList(sectionId, 10);
+        List<SectionDto> sectionList = this.getSectionList(sectionId, page);
         SectionDto head = sectionList.get(0);
 
-        if (this.cantReadAny(head.getArticle(), userId)) {
+        if (this.readAnyDisabled(head.getArticle(), userId)) {
             throw new ForbiddenException("You cant view this section");
         }
         this.logger.info("User {} got section {} and {} subsections", userId, sectionId, sectionList.size());
@@ -80,14 +82,12 @@ public class SectionServiceImpl implements SectionService {
                 .orElseThrow(() -> new NotFoundException("Section not found"));
         Set<Section> subSections = superSection.getSubsections();
 
-        if (this.cantWrite(superSection, userId)) {
+        if (this.createDisabled(superSection, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
 
-        Revision revision = new Revision(revisionContent);
-        revision.create(userId);
+        Revision revision = new Revision(revisionContent, userId);
         Section newSection = new Section(revision, superSection, userId);
-        newSection.create(userId);
 
         subSections.add(newSection);
         superSection.setSubsections(subSections);
@@ -108,7 +108,7 @@ public class SectionServiceImpl implements SectionService {
                 .orElseThrow(() -> new NotFoundException("Section not found"));
         List<Revision> revisions = section.getRevisions();
 
-        if (this.cantWrite(section, userId)) {
+        if (this.writeDisabled(section, userId)) {
             throw new ForbiddenException("You cant view this section");
         }
 
@@ -132,7 +132,7 @@ public class SectionServiceImpl implements SectionService {
         Section section = sectionRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("Section not found"));
 
-        if (this.cantWrite(section, userId)) {
+        if (this.writeDisabled(section, userId)) {
             throw new ForbiddenException("You cant delete this section");
         }
 
@@ -151,12 +151,28 @@ public class SectionServiceImpl implements SectionService {
      *
      * @param section section that user is accessing
      * @param userId  user id
-     * @return returns true if user is allowed
+     * @return returns true if section was not created by current user
      */
-    private boolean cantWrite(Section section, String userId) {
-        Article article = section.getArticle();
+    private boolean writeDisabled(Section section, String userId) {
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
-        return !article.getCreatedBy().equals(userId) && !isAdmin;
+        boolean isCreatedByCurrent = !Objects.isNull(section.getCreatedBy()) && section.getCreatedBy().equals(userId);
+        return !isCreatedByCurrent && !isAdmin;
+    }
+
+    /**
+     * Checks if the user has right for editing
+     *
+     * @param section section that user is accessing
+     * @param userId  user id
+     * @return returns true if section was not created by current user and the user is not an admin and the article
+     * is not publicly editable
+     */
+    private boolean createDisabled(Section section, String userId) {
+        Article article = section.getArticle();
+        boolean isPubliclyEditable = Objects.nonNull(article) ? article.getIsPubliclyEditable() : false;
+        boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
+        boolean isCreatedByCurrent = !Objects.isNull(section.getCreatedBy()) && section.getCreatedBy().equals(userId);
+        return !isCreatedByCurrent && !isAdmin && !isPubliclyEditable;
     }
 
     /**
@@ -164,25 +180,24 @@ public class SectionServiceImpl implements SectionService {
      *
      * @param article_id article id containing this section
      * @param userId     user id
-     * @return returns true if user is allowed
+     * @return returns true if user is not creator while article is private
      */
-    private boolean cantReadAny(String article_id, String userId) {
+    private boolean readAnyDisabled(String article_id, String userId) {
         Article article = this.articleRepository.getReferenceById(article_id);
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
-        return !(article.getIsPrivate() && article.getCreatedBy().equals(userId)) && !isAdmin;
+        boolean isCreatedByCurrent = !Objects.isNull(article.getCreatedBy()) && article.getCreatedBy().equals(userId);
+        return article.getIsPrivate() && (!isCreatedByCurrent && !isAdmin);
     }
 
     /**
-     * Checks if the user has right for editing
+     * Checks if the not logged-in user has right for editing
      *
      * @param article_id article id containing this section
-     * @return returns true if user is allowed
+     * @return returns true if the article is private
      */
-    private boolean cantReadPublic(String article_id) {
+    private boolean readPublicDisabled(String article_id) {
         Article article = this.articleRepository.getReferenceById(article_id);
-        boolean isAdmin =
-                !Objects.isNull(this.servletRequest) && this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
-        return article.getIsPrivate() && !isAdmin;
+        return article.getIsPrivate();
     }
 
     /**
@@ -201,12 +216,15 @@ public class SectionServiceImpl implements SectionService {
      * Fetches section list from repository and transforms it into Dto list
      *
      * @param sectionId parent section id
-     * @param limit     depth limit
+     * @param page      section pagination data
      * @return returns list of sections containing parent and descendants
      * @throws NotFoundException thrown when no section was found
      */
-    private List<SectionDto> getSectionList(String sectionId, Integer limit) throws NotFoundException {
-        List<SectionProjection> sectionProjectionList = sectionRepository.findRecursiveById(sectionId, limit);
+    private List<SectionDto> getSectionList(String sectionId, SectionPaginationDto page) throws NotFoundException {
+        int start = page.getPage() * page.getPageSize();
+        int end = (page.getPage() + 1) * page.getPageSize();
+        List<SectionProjection> sectionProjectionList = sectionRepository.findRecursiveById(sectionId,
+                page.getLimit(), 0, start, end);
 
         if (sectionProjectionList.isEmpty()) {
             throw new NotFoundException("Section not found");
@@ -214,5 +232,4 @@ public class SectionServiceImpl implements SectionService {
 
         return sectionProjectionList.stream().map(this::sectionProjectionToDto).toList();
     }
-
 }

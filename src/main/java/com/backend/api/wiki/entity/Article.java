@@ -32,6 +32,9 @@ public class Article extends OwnedEntity {
     @Column(name = "is_private")
     private Boolean isPrivate = Boolean.FALSE;
 
+    @Column(name = "is_public_editable")
+    private Boolean isPubliclyEditable = Boolean.FALSE;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "categories", joinColumns = @JoinColumn(name = "article_id"), inverseJoinColumns =
     @JoinColumn(name = "category_id"))
@@ -46,11 +49,12 @@ public class Article extends OwnedEntity {
         this.title = request.getTitle();
         this.section = section;
         this.isPrivate = request.getIsPrivate();
+        this.isPubliclyEditable = request.getIsPubliclyEditable();
         this.create(userId);
     }
 
     public ArticleListItemDto getListItemDto() {
         return new ArticleListItemDto(this.getId(), this.getTitle(), this.getSection()
-                .getId(), this.getCreatedBy(), this.getIsPrivate(), this.getCategories());
+                .getId(), this.getCreatedBy(), this.getIsPrivate(), this.isPubliclyEditable, this.getCategories());
     }
 }

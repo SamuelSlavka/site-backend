@@ -1,5 +1,6 @@
 package com.backend.api.wiki.service;
 
+import com.backend.api.core.model.PaginationDto;
 import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.security.utils.KeycloakRoleConverter;
 import com.backend.api.wiki.entity.Article;
@@ -33,6 +34,7 @@ class ArticleServiceTest {
     Section section;
     ArticleListItemDto listItem;
     Pageable sortedPage;
+    PaginationDto page;
     @Mock
     private HttpServletRequest servletRequest;
     @Mock
@@ -42,6 +44,7 @@ class ArticleServiceTest {
 
     @BeforeEach
     void setUp() {
+        page = new PaginationDto(0, 10);
         MockitoAnnotations.openMocks(this);
         section = Section.builder().id("section-id").build();
         article = Article.builder().id(articleId).section(section).title("title").build();
@@ -53,7 +56,7 @@ class ArticleServiceTest {
     @Test
     void getPublicArticles() {
         when(articleRepository.findPublicArticles(sortedPage)).thenReturn(List.of(article));
-        List<ArticleListItemDto> articles = this.articleService.getPublicArticles(0);
+        List<ArticleListItemDto> articles = this.articleService.getPublicArticles(page);
 
         assertEquals(listItem, articles.get(0));
         verify(articleRepository, times(1)).findPublicArticles(sortedPage);
@@ -63,7 +66,7 @@ class ArticleServiceTest {
     void getUserArticles() {
         when(articleRepository.findPrivateArticles(userId, false, sortedPage)).thenReturn(List.of(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
-        List<ArticleListItemDto> articles = this.articleService.getUserArticles(0, userId);
+        List<ArticleListItemDto> articles = this.articleService.getUserArticles(page, userId);
 
         assertEquals(listItem, articles.get(0));
         verify(articleRepository, times(1)).findPrivateArticles(userId, false, sortedPage);
@@ -73,7 +76,7 @@ class ArticleServiceTest {
     void getAdminArticles() {
         when(articleRepository.findPrivateArticles(userId, true, sortedPage)).thenReturn(List.of(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
-        List<ArticleListItemDto> articles = this.articleService.getUserArticles(0, userId);
+        List<ArticleListItemDto> articles = this.articleService.getUserArticles(page, userId);
 
         assertEquals(listItem, articles.get(0));
         verify(articleRepository, times(1)).findPrivateArticles(userId, true, sortedPage);
@@ -81,7 +84,7 @@ class ArticleServiceTest {
 
     @Test
     void createPublicArticle() {
-        ArticleCreationDto art = new ArticleCreationDto("title", false);
+        ArticleCreationDto art = new ArticleCreationDto("title", false, false);
         ArticleListItemDto createdArt = this.articleService.createArticle(art, userId);
 
         assertEquals(createdArt.getTitle(), art.getTitle());
@@ -91,7 +94,7 @@ class ArticleServiceTest {
 
     @Test
     void createPrivateArticle() {
-        ArticleCreationDto art = new ArticleCreationDto("title", true);
+        ArticleCreationDto art = new ArticleCreationDto("title", true, false);
         ArticleListItemDto createdArt = this.articleService.createArticle(art, userId);
 
         assertEquals(createdArt.getTitle(), art.getTitle());
@@ -134,7 +137,7 @@ class ArticleServiceTest {
 
     @Test
     void editArticle() throws ForbiddenException, NotFoundException {
-        ArticleCreationDto art = new ArticleCreationDto("title2", false);
+        ArticleCreationDto art = new ArticleCreationDto("title2", false, false);
 
         when(articleRepository.findByIdAndDeletedFalse(articleId)).thenReturn(Optional.ofNullable(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
@@ -148,7 +151,7 @@ class ArticleServiceTest {
 
     @Test
     void editArticleAsAdmin() throws ForbiddenException, NotFoundException {
-        ArticleCreationDto art = new ArticleCreationDto("title2", false);
+        ArticleCreationDto art = new ArticleCreationDto("title2", false, false);
 
         when(articleRepository.findByIdAndDeletedFalse(articleId)).thenReturn(Optional.ofNullable(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
@@ -162,7 +165,7 @@ class ArticleServiceTest {
 
     @Test
     void editArticleAsOtherUser() {
-        ArticleCreationDto art = new ArticleCreationDto("title2", false);
+        ArticleCreationDto art = new ArticleCreationDto("title2", false, false);
 
         when(articleRepository.findByIdAndDeletedFalse(articleId)).thenReturn(Optional.ofNullable(article));
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);

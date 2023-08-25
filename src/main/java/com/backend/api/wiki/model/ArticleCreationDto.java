@@ -11,4 +11,6 @@ public class ArticleCreationDto {
     private String title;
     @NonNull
     private Boolean isPrivate;
+    @NonNull
+    private Boolean isPubliclyEditable;
 }

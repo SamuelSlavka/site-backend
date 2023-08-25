@@ -1,5 +1,6 @@
 package com.backend.api.wiki.service;
 
+import com.backend.api.core.model.PaginationDto;
 import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.security.utils.KeycloakRoleConverter;
 import com.backend.api.wiki.entity.Article;
@@ -36,8 +37,8 @@ public class ArticleServiceImpl implements ArticleService {
      */
     @Override
     @Transactional
-    public List<ArticleListItemDto> getPublicArticles(Integer page) {
-        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+    public List<ArticleListItemDto> getPublicArticles(PaginationDto page) {
+        Pageable sortedPage = PageRequest.of(page.getPage(), page.getPageSize(), Sort.by("createdAt").descending());
         List<Article> articles = articleRepository.findPublicArticles(sortedPage);
         return articleToListDto(articles);
     }
@@ -47,8 +48,8 @@ public class ArticleServiceImpl implements ArticleService {
      */
     @Override
     @Transactional
-    public List<ArticleListItemDto> getUserArticles(Integer page, String userId) {
-        Pageable sortedPage = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+    public List<ArticleListItemDto> getUserArticles(PaginationDto page, String userId) {
+        Pageable sortedPage = PageRequest.of(page.getPage(), page.getPageSize(), Sort.by("createdAt").descending());
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
         List<Article> articles = articleRepository.findPrivateArticles(userId, isAdmin, sortedPage);

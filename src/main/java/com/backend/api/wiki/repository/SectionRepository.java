@@ -17,8 +17,11 @@ public interface SectionRepository extends OwnedRepository<Section, String> {
      * Finds a list of sections, that contains parent specified by id and all of its descendants until specified
      * depth limit
      *
-     * @param id    parent section id
-     * @param limit max depth of children sections
+     * @param id        parent section id
+     * @param limit     max depth of children sections
+     * @param initDepth initial depth used for loading deeper sections
+     * @param pageStart section order that we should begin on
+     * @param pageEnd   section order that we should end on
      * @return returns list of sections with parent and descendants ordered by order and depth
      */
     @Query(nativeQuery = true, value = """
@@ -45,7 +48,8 @@ public interface SectionRepository extends OwnedRepository<Section, String> {
                     INNER JOIN section_recursive sr ON child.super_section_id = sr.id
                 WHERE
             		child.deleted IS FALSE AND
-                    child.depth < :limit
+                    child.depth < :limit AND
+                    (child.depth <> :initDepth OR (child.section_order > :pageStart AND child.section_order < :pageEnd))
             )
             SELECT
                 sr.*
@@ -53,7 +57,7 @@ public interface SectionRepository extends OwnedRepository<Section, String> {
                 section_recursive sr
                 ORDER BY sr.depth, sr.section_order
                         """)
-    List<SectionProjection> findRecursiveById(String id, int limit);
+    List<SectionProjection> findRecursiveById(String id, int limit, int initDepth, int pageStart, int pageEnd);
 
     Optional<Section> findByIdAndDeletedFalse(@NotNull String id);
 }

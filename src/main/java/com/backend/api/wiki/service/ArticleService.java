@@ -1,5 +1,6 @@
 package com.backend.api.wiki.service;
 
+import com.backend.api.core.model.PaginationDto;
 import com.backend.api.security.error.ForbiddenException;
 import com.backend.api.wiki.error.NotFoundException;
 import com.backend.api.wiki.model.ArticleCreationDto;
@@ -19,7 +20,7 @@ public interface ArticleService {
      * @param page starting page
      * @return returns list of articles represented as DTOs
      */
-    List<ArticleListItemDto> getPublicArticles(Integer page);
+    List<ArticleListItemDto> getPublicArticles(PaginationDto page);
 
     /**
      * Returns list of articles that are either public or are visible for specified user
@@ -28,7 +29,7 @@ public interface ArticleService {
      * @param userId id of logged user
      * @return returns list of articles represented as DTOs
      */
-    List<ArticleListItemDto> getUserArticles(Integer page, String userId);
+    List<ArticleListItemDto> getUserArticles(PaginationDto page, String userId);
 
     /**
      * Creates new article entity

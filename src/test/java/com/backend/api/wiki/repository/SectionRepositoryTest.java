@@ -37,7 +37,7 @@ class SectionRepositoryTest {
         RevisionCreationDto revCreation = new RevisionCreationDto("text", "title");
         String userId = "user-id";
         section = new Section(userId);
-        Article article = new Article(new ArticleCreationDto("title", false), section, userId);
+        Article article = new Article(new ArticleCreationDto("title", false, false), section, userId);
         testEntityManager.persist(article);
 
 
@@ -60,14 +60,14 @@ class SectionRepositoryTest {
     @Test
     @DisplayName("Find public section")
     void findRecursiveById() {
-        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 10);
+        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 10, 0, 0, 10);
         assertEquals(5, sections.size());
     }
 
     @Test
     @DisplayName("Find public section to depth 1")
     void findRecursiveByIdToDepth() {
-        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 2);
+        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 2, 0, 0, 10);
         assertEquals(3, sections.size());
     }
 
@@ -76,7 +76,7 @@ class SectionRepositoryTest {
     @DisplayName("Find public section and skip deleted")
     void findRecursiveSkipDeleted() {
         subSection.delete();
-        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 10);
+        List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 10, 0, 0, 10);
         assertEquals(2, sections.size());
     }
 
