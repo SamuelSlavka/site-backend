@@ -13,11 +13,11 @@ import org.hibernate.annotations.Where;
 import java.util.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"article", "superSection"}, callSuper = false)
 @Where(clause = SoftDeletableEntity.SOFT_DELETED_CLAUSE)
 @Table(name = "section")
 public class Section extends OwnedEntity {
@@ -38,7 +38,7 @@ public class Section extends OwnedEntity {
     @JsonIgnore
     private Set<Section> subsections = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinColumn(name = "super_section_id")
     private Section superSection;
 
@@ -79,7 +79,7 @@ public class Section extends OwnedEntity {
     public String toString() {
         return String.format("Section %s, depth %d, order %d, revision %s, article %s", this.id, this.depth,
                 this.sectionOrder, Objects.isNull(this.latestRevision) ? null : this.latestRevision.toString(),
-                this.article.getId());
+                Objects.isNull(this.article) ? null : this.article.getId());
     }
 
 }

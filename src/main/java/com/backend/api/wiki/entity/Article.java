@@ -14,12 +14,12 @@ import java.util.List;
 /**
  * Article entity representing a set of sections either private or public
  */
-@Data
 @Entity
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @Where(clause = SoftDeletableEntity.SOFT_DELETED_CLAUSE)
 @Table(name = "article")
 public class Article extends OwnedEntity {
@@ -35,7 +35,7 @@ public class Article extends OwnedEntity {
     @Column(name = "is_public_editable")
     private Boolean isPubliclyEditable = Boolean.FALSE;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "categories", joinColumns = @JoinColumn(name = "article_id"), inverseJoinColumns =
     @JoinColumn(name = "category_id"))
     private List<Category> categories;

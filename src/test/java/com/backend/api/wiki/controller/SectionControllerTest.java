@@ -78,7 +78,8 @@ class SectionControllerTest {
         given(securityContext.getAuthentication()).willReturn(Utils.getMockJwtToken("USER", userId));
         when(sectionService.getSection(sectionId, userId, page)).thenReturn(List.of(sectionDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&offset=10&limit=10")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&offset=10&limit=10" +
+                                "&initDepth=0" + "&pageSize=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((revision.getTitle())));
     }
@@ -88,7 +89,8 @@ class SectionControllerTest {
     void getPublicSection() throws Exception {
         when(sectionService.getPublicSection(sectionId, new SectionPaginationDto(0, 10, 10, 0))).thenReturn(List.of(sectionDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&pageSize=10&limit=10")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/sections/id/" + sectionId + "?page=0&pageSize=10&limit=10" +
+                                "&initDepth=0" + "&pageSize=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((revision.getTitle())));
     }

@@ -8,25 +8,25 @@ import org.hibernate.annotations.Where;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Where(clause = SoftDeletableEntity.SOFT_DELETED_CLAUSE)
-@Table(name = "category",
-        uniqueConstraints = @UniqueConstraint(
-                name = "category_unique",
-                columnNames = "category_name"
-        ))
-public class Category extends SoftDeletableEntity{
+@Table(name = "category", uniqueConstraints = @UniqueConstraint(name = "category_unique", columnNames =
+        "category_name"))
+public class Category extends SoftDeletableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(name = "category_name")
     private String categoryName;
+
+    @Column(name = "category_description")
+    private String description;
 
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     @JsonIgnore

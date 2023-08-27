@@ -6,13 +6,13 @@ import com.backend.api.wiki.entity.Section;
 import com.backend.api.wiki.model.ArticleCreationDto;
 import com.backend.api.wiki.model.RevisionCreationDto;
 import com.backend.api.wiki.projection.SectionProjection;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +20,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+@SpringBootTest
 class SectionRepositoryTest {
 
     private Section section;
@@ -29,32 +29,40 @@ class SectionRepositoryTest {
     @Autowired
     private SectionRepository sectionRepository;
     @Autowired
-    private TestEntityManager testEntityManager;
+    private ArticleRepository articleRepository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
-
         RevisionCreationDto revCreation = new RevisionCreationDto("text", "title");
         String userId = "user-id";
+
         section = new Section(userId);
+
         Article article = new Article(new ArticleCreationDto("title", false, false), section, userId);
-        testEntityManager.persist(article);
+        articleRepository.save(article);
+        articleRepository.flush();
 
-
+        sectionRepository.save(section);
+        sectionRepository.flush();
         subSection = new Section(new Revision(revCreation), section, userId);
+        sectionRepository.save(subSection);
+        sectionRepository.flush();
         Section subSection1 = new Section(new Revision(revCreation), section, userId);
-        testEntityManager.persist(subSection1);
+        sectionRepository.save(subSection1);
+        sectionRepository.flush();
 
         Section subSubSection = new Section(new Revision(revCreation), subSection, userId);
+        sectionRepository.save(subSubSection);
+        sectionRepository.flush();
         Section subSubSection1 = new Section(new Revision(revCreation), subSection, userId);
-        testEntityManager.persist(subSubSection);
-        testEntityManager.persist(subSubSection1);
+        sectionRepository.save(subSubSection1);
+        sectionRepository.flush();
 
         subSection.setSubsections(Set.of(subSubSection, subSubSection1));
         section.setSubsections(Set.of(subSection, subSection1));
         section.setArticle(article);
-        testEntityManager.persist(subSection);
-        testEntityManager.persist(section);
+        sectionRepository.flush();
     }
 
     @Test
@@ -71,11 +79,12 @@ class SectionRepositoryTest {
         assertEquals(3, sections.size());
     }
 
-
     @Test
     @DisplayName("Find public section and skip deleted")
     void findRecursiveSkipDeleted() {
         subSection.delete();
+        this.sectionRepository.save(subSection);
+        this.sectionRepository.flush();
         List<SectionProjection> sections = sectionRepository.findRecursiveById(section.getId(), 10, 0, 0, 10);
         assertEquals(2, sections.size());
     }
@@ -84,7 +93,6 @@ class SectionRepositoryTest {
     @DisplayName("Find single section")
     void findByIdAndDeletedFalse() {
         Optional<Section> res = sectionRepository.findByIdAndDeletedFalse(section.getId());
-        res.ifPresent(value -> assertEquals(section, value));
+        res.ifPresent(value -> assertEquals(section.getId(), value.getId()));
     }
-
 }

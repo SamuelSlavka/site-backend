@@ -61,7 +61,7 @@ class SectionServiceTest {
         MockitoAnnotations.openMocks(this);
         projection = new SectionProjectionImpl(sectionId, "rev", "super", 0, 0, userId, articleId, "text", "title");
         sectionDto = sectionService.sectionProjectionToDto(projection);
-        article = Article.builder().id(articleId).isPrivate(false).build();
+        article = Article.builder().id(articleId).isPrivate(false).isPubliclyEditable(false).build();
         article.create(userId);
         revisionCreation = new RevisionCreationDto("title", "text");
         section = Section.builder().depth(0).sectionOrder(0).subsections(new HashSet<>()).id(sectionId).article(article)
@@ -214,7 +214,7 @@ class SectionServiceTest {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(false);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
 
-        Article privateArt = Article.builder().id(articleId).isPrivate(true).build();
+        Article privateArt = Article.builder().id(articleId).isPrivate(true).isPubliclyEditable(false).build();
         privateArt.create(userId);
 
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);
@@ -250,7 +250,7 @@ class SectionServiceTest {
         when(servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name())).thenReturn(true);
         when(sectionRepository.findByIdAndDeletedFalse(sectionId)).thenReturn(Optional.ofNullable(section));
 
-        Article privateArt = Article.builder().id(articleId).isPrivate(true).build();
+        Article privateArt = Article.builder().id(articleId).isPrivate(true).isPubliclyEditable(false).build();
         privateArt.create(userId);
 
         when(articleRepository.getReferenceById(articleId)).thenReturn(privateArt);

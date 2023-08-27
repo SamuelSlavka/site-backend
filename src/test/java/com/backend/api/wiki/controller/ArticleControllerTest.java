@@ -74,7 +74,7 @@ class ArticleControllerTest {
         given(securityContext.getAuthentication()).willReturn(getMockJwtToken("USER", userId));
         when(articleService.getUserArticles(page, userId)).thenReturn(List.of(articleDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&offset=10")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&pageSize=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((article.getTitle())));
     }
@@ -84,7 +84,7 @@ class ArticleControllerTest {
     void getPublicArticles() throws Exception {
         when(articleService.getPublicArticles(page)).thenReturn(List.of(articleDto));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&offset=10")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/articles?page=0&pageSize=10")
                         .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value((article.getTitle())));
     }

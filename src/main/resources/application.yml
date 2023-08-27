@@ -28,11 +28,6 @@ spring:
   mvc:
     dispatch-options-request: true
 
-flyway:
-  datasources:
-    default:
-      enabled: true
-
 logging:
   level:
     org:
@@ -50,21 +45,23 @@ spring:
   config:
     import: optional:file:.env[.properties]
     activate:
-      on-profile: mem
+      on-profile: psql
   datasource:
-    driverClassName: org.h2.Driver
-    password: admin
-    url: jdbc:h2:mem:dcbapp
-    username: admin
-  h2:
-    console:
-      enabled: true
+    url: jdbc:postgresql://localhost:5435/site
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
     show-sql: true
-
+  flyway:
+    enabled: true
+    schemas: public
+    locations: classpath:db/migration
 springdoc:
   swagger-ui:
     path: /api/v1/docs
@@ -74,20 +71,26 @@ spring:
   config:
     import: optional:file:.env[.properties]
     activate:
-      on-profile: psql
+      on-profile: test
   datasource:
-    url: jdbc:postgresql://localhost:5435/site
+    url: jdbc:postgresql://localhost:5435/test
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: create-drop
+      hbm2ddl:
+        auto:
+          create-drop
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
-
+  flyway:
+    enabled: true
+    schemas: public
+    locations: classpath:db/migration
 springdoc:
   swagger-ui:
     path: /api/v1/docs

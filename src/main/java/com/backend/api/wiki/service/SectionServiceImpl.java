@@ -223,8 +223,10 @@ public class SectionServiceImpl implements SectionService {
     private List<SectionDto> getSectionList(String sectionId, SectionPaginationDto page) throws NotFoundException {
         int start = page.getPage() * page.getPageSize();
         int end = (page.getPage() + 1) * page.getPageSize();
+        this.logger.info("Section {} limit {} init {} start {} end {}", sectionId, page.getLimit(),
+                page.getInitDepth(), start, end);
         List<SectionProjection> sectionProjectionList = sectionRepository.findRecursiveById(sectionId,
-                page.getLimit(), 0, start, end);
+                page.getLimit(), page.getInitDepth(), start, end);
 
         if (sectionProjectionList.isEmpty()) {
             throw new NotFoundException("Section not found");

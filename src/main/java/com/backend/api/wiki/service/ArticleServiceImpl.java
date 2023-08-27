@@ -104,7 +104,7 @@ public class ArticleServiceImpl implements ArticleService {
         boolean isAdmin = this.servletRequest.isUserInRole(KeycloakRoleConverter.rolesEnum.ADMIN.name());
 
         if (!userId.equals(article.getCreatedBy()) && !isAdmin) {
-            throw new ForbiddenException("Article edit not allowed");
+            throw new ForbiddenException("Article delete not allowed");
         }
         this.logger.info("User {} deleted article {}", userId, article.getId());
         article.delete();
