@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Measurement controller that provides crud actions on Measurement entity
@@ -33,13 +32,20 @@ public class MeasurementController {
      */
     @GetMapping
     public List<Measurement> getMeasurements(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start) {
-        if (Objects.isNull(start)) {
-            this.logger.info("Started fetching measurements");
-            return measurementService.getMeasurements();
-        } else {
-            this.logger.info("Started fetching measurements from {}", start);
-            return measurementService.getMeasurementsFromDate(start);
-        }
+        this.logger.info("Started fetching measurements from {}", start);
+        return measurementService.getMeasurementsFromDate(start);
+    }
+
+
+    /**
+     * Get endpoint that fetches all measurements
+     *
+     * @return returns body of HTTP response with list of measurements
+     */
+    @GetMapping(path = "/all")
+    public List<Measurement> getAllMeasurements() {
+        this.logger.info("Started fetching measurements");
+        return measurementService.getMeasurements();
     }
 
 
