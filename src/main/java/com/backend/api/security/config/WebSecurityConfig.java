@@ -26,21 +26,19 @@ public class WebSecurityConfig {
 
     @Bean
     protected SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
+        http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)
                 .headers(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(r -> r
-                        .requestMatchers(HttpMethod.GET, "/api/v1/articles**").permitAll()
+                .authorizeHttpRequests(r -> r.requestMatchers(HttpMethod.GET, "/api/v1/articles**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/sections**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/sections/**").permitAll()
-                        .anyRequest().authenticated())
-                .exceptionHandling(e -> e.authenticationEntryPoint(errorHandler))
+                        .requestMatchers(HttpMethod.POST, "/api/v1/measurements**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/measurements/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/measurements**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/measurements/**").permitAll().anyRequest()
+                        .authenticated()).exceptionHandling(e -> e.authenticationEntryPoint(errorHandler))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(
-                        httpSecurityOAuth2ResourceServerConfigurer ->
-                                httpSecurityOAuth2ResourceServerConfigurer.jwt(
-                                        jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtConverter())));
+                .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer -> httpSecurityOAuth2ResourceServerConfigurer.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtConverter())));
 
 
         return http.build();
