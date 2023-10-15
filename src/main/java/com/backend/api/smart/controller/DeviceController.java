@@ -24,22 +24,11 @@ public class DeviceController {
     private DeviceService deviceService;
 
     /**
-     * Get endpoint that fetches list of devices with their measurements
-     *
-     * @return returns body of HTTP response with list of devices
-     */
-    @GetMapping()
-    public List<Device> getDevices() {
-        this.logger.info("Started fetching devices");
-        return deviceService.getDevices();
-    }
-
-    /**
      * Get endpoint that fetches list of devices without their measurements
      *
      * @return returns body of HTTP response with list of devices
      */
-    @GetMapping(path = "/small")
+    @GetMapping()
     public List<SmallDeviceProjection> getSmallDevices() {
         this.logger.info("Started fetching slim devices from");
         return deviceService.getSmallDevices();

@@ -13,17 +13,13 @@ import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Objects;
 
+
 @Service
 public class DeviceServiceImpl implements DeviceService {
     private final Logger logger = LoggerFactory.getLogger((DeviceServiceImpl.class));
 
     @Autowired
     private DeviceRepository deviceRepository;
-
-    @Override
-    public List<Device> getDevices() {
-        return deviceRepository.findAll();
-    }
 
     @Override
     public List<SmallDeviceProjection> getSmallDevices() {

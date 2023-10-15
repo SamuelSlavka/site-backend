@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Measurement controller that provides crud actions on Measurement entity
  */
@@ -23,6 +25,17 @@ public class MeasurementController {
     private MeasurementService measurementService;
 
     /**
+     * Get endpoint that fetches list of measurements
+     *
+     * @return returns body of HTTP response with list of measurements
+     */
+    @GetMapping
+    public List<Measurement> getMeasurements(@RequestParam long offset, @RequestParam String deviceId) throws NotFoundException {
+        this.logger.info("Started fetching measurements with {} offset and {} device", offset, deviceId);
+        return measurementService.getMeasurementsFrom(offset, deviceId);
+    }
+
+    /**
      * Get endpoint that fetches latest measurement
      *
      * @return returns body of HTTP response with list of measurements
@@ -31,15 +44,8 @@ public class MeasurementController {
     public Measurement getLatestMeasurement() {
         this.logger.info("Started fetching measurements");
         return measurementService.getLatestMeasurement();
-
     }
 
-    /**
-     * Post endpoint that creates an measurement
-     *
-     * @param request object in HTTP request body containing new measurement
-     * @return returns newly created measurement
-     */
     @PostMapping
     public Measurement createMeasurement(@Valid @RequestBody MeasurementCreationDto request) throws NotFoundException {
         this.logger.info("Started creating measurement created at {}", request.getMeasuredAt());

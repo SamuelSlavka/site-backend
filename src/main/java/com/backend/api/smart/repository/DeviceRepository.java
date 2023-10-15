@@ -12,6 +12,7 @@ import java.util.List;
 public interface DeviceRepository extends JpaRepository<Device, String> {
     Device findFirstByIsMainTrue();
 
+
     @Query("SELECT d.id as id, d.name as name, d.isMain as isMain FROM Device d")
     List<SmallDeviceProjection> findSmallDevices();
 
