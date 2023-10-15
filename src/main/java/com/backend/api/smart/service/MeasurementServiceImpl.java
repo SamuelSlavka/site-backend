@@ -56,19 +56,17 @@ public class MeasurementServiceImpl implements MeasurementService {
 
     @Override
     public Measurement createMeasurement(MeasurementCreationDto dto) {
-        logger.info("Creating measurement");
+        logger.info("Creating measurement for {}", dto.getDevice());
         Optional<Device> device = deviceRepository.findById(dto.getDevice());
 
         Measurement measurement = new Measurement(dto);
 
-        measurementRepository.save(measurement);
-
-        device.ifPresent(dev -> {
+        if (device.isPresent()) {
             logger.info("Adding to device");
-            dev.getMeasurements().add(measurement);
-            deviceRepository.save(dev);
-        });
-    
+            measurement.setDevice(device.get());
+        }
+
+        measurementRepository.save(measurement);
         return measurement;
     }
 }
