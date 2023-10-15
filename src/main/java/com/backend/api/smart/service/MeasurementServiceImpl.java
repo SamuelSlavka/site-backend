@@ -61,12 +61,14 @@ public class MeasurementServiceImpl implements MeasurementService {
 
         Measurement measurement = new Measurement(dto);
 
+        measurementRepository.save(measurement);
+
         device.ifPresent(dev -> {
             logger.info("Adding to device");
             dev.getMeasurements().add(measurement);
+            deviceRepository.save(dev);
         });
-
-        measurementRepository.save(measurement);
+    
         return measurement;
     }
 }
