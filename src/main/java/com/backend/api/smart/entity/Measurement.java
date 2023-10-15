@@ -1,6 +1,7 @@
 package com.backend.api.smart.entity;
 
 import com.backend.api.smart.model.MeasurementCreationDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,15 +22,19 @@ public class Measurement {
 
     private Double temperature;
     private Double humidity;
-    private String device;
 
     @Column(name = "measured_at")
     private LocalDateTime measuredAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "device_id")
+    @JsonIgnore
+    private Device device;
+
 
     public Measurement(MeasurementCreationDto dto) {
         this.temperature = dto.getTemperature();
         this.humidity = dto.getHumidity();
         this.measuredAt = dto.getMeasuredAt();
-        this.device = dto.getDevice();
     }
 }

@@ -34,6 +34,8 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/sections/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/measurements**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/measurements/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/devices**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/devices/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/measurements**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/measurements/**").permitAll().anyRequest()
                         .authenticated()).exceptionHandling(e -> e.authenticationEntryPoint(errorHandler))

@@ -29,6 +29,11 @@ spring:
     dispatch-options-request: true
 
 logging:
+  file:
+    path:
+      .
+    name:
+      logs.log
   level:
     org:
       keycloak: DEBUG
@@ -57,6 +62,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+      javax:
+        persistence:
+          schema-generation:
+            create-source: metadata
+            scripts:
+              action: update
+              create-target: update.sql
     show-sql: true
   flyway:
     baseline-on-migrate: true
