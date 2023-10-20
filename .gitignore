@@ -6,6 +6,13 @@ target/
 
 logs.log
 
+*.log
+
+.env.prod
+
+queries
+
+
 update.sql
 
 application.yml

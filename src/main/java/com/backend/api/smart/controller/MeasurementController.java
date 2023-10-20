@@ -8,8 +8,10 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 /**
@@ -20,7 +22,8 @@ import java.util.List;
 public class MeasurementController {
 
     private final Logger logger = LoggerFactory.getLogger((MeasurementController.class));
-
+    @Value("${API_KEY}")
+    private String apiKey;
     @Autowired
     private MeasurementService measurementService;
 
@@ -47,8 +50,13 @@ public class MeasurementController {
     }
 
     @PostMapping
-    public Measurement createMeasurement(@Valid @RequestBody MeasurementCreationDto request) throws NotFoundException {
-        this.logger.info("Started creating measurement created at {}", request.getMeasuredAt());
-        return measurementService.createMeasurement(request);
+    public Measurement createMeasurement(@Valid @RequestBody MeasurementCreationDto request, @RequestHeader(value =
+            "Api-Key") String apiKey) throws NotFoundException {
+        this.logger.info("Started creating measurement created at {} with key {}", request.getMeasuredAt(), apiKey);
+        if (apiKey.equals(this.apiKey)) {
+            return measurementService.createMeasurement(request);
+        }
+
+        throw new NotAuthorizedException("Wrong api key");
     }
 }
