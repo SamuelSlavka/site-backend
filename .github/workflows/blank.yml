@@ -49,4 +49,4 @@ jobs:
             docker pull samsla/site-backend:latest
             docker rm -f site-backend
             docker run --env-file .env-backend -d --name site-backend --network host samsla/site-backend
-            rm .env-backend 2> /dev/null
+#            rm .env-backend 2> /dev/null
