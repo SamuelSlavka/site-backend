@@ -1,5 +1,6 @@
 package com.backend.api.scheduled.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,6 +42,12 @@ public class Weather {
     @JoinColumn(name = "weather_id")
     @JsonProperty("weather")
     private List<WeatherDescription> weatherInner;
+
+    @Setter
+    @Getter
+    @JsonProperty("pop")
+    @Column(name = "pop")
+    private Integer pop;
 
     @Setter
     @Getter
