@@ -66,7 +66,7 @@ public class ApiServiceImpl implements ApiService {
     @Override
     @Transactional
     public void callForecastApi() {
-        String forecastUrl = String.format("%s&appid=%s&units=metric", Constants.forecastBaseUrl, weatherApiKey);
+        String forecastUrl = String.format("%s&appid=%s&units=metric&cnt=9", Constants.forecastBaseUrl, weatherApiKey);
         RestTemplate restTemplate = new RestTemplate();
         Forecast forecastResponse = restTemplate.getForObject(forecastUrl, Forecast.class);
         if (forecastResponse != null) {
