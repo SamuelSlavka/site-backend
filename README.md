@@ -1,6 +1,6 @@
 # site backend
 
-App written in Java for management of md documents. By default, this project needs psql and keycloak instances. Docker
+App written in Java for smart home stuff, dahsboard and management of md documents. By default, this project needs psql and keycloak instances. Docker
 compose for both can be found in the [site](https://github.com/SamuelSlavka/site) repo. After setting both env
 files to common values (if applicable) and running the docker compose, this application will be fully
 functional.
