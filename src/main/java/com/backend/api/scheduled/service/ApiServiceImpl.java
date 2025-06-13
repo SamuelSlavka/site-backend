@@ -47,20 +47,24 @@ public class ApiServiceImpl implements ApiService {
     public void callWeatherApi() {
         String weatherUrl = String.format("%s&appid=%s&units=metric", Constants.weatherBaseUrl, weatherApiKey);
         RestTemplate restTemplate = new RestTemplate();
-        Weather weatherResponse = restTemplate.getForObject(weatherUrl, Weather.class);
-        Optional<Forecast> forecast = forecastRepository.findById(Constants.weatherId);
-        if (weatherResponse != null && forecast.isPresent()) {
-            weatherRepository.deleteByForecastId(Constants.weatherId);
-            weatherResponse.setForecast(forecast.get());
-            weatherRepository.save(weatherResponse);
-            logger.info("Weather updated");
+        try {
+            Weather weatherResponse = restTemplate.getForObject(weatherUrl, Weather.class);
+            Optional<Forecast> forecast = forecastRepository.findById(Constants.weatherId);
+            if (weatherResponse != null && forecast.isPresent()) {
+                weatherRepository.deleteByForecastId(Constants.weatherId);
+                weatherResponse.setForecast(forecast.get());
+                weatherRepository.save(weatherResponse);
+                logger.info("Weather updated");
+            }
+            logger.info("Weather Task executed");
+        } catch (Exception e) {
+            logger.info("Weather Task failed");
         }
-        logger.info("Weather Task executed");
     }
 
     public Weather getLatestWeather() {
         Optional<Forecast> fr = forecastRepository.findById(Constants.weatherId);
-        return fr.map(forecast -> forecast.getList().get(0)).orElse(null);
+        return fr.map(forecast -> forecast.getList().isEmpty() ? null : forecast.getList().get(0)).orElse(null);
     }
 
     @Override
@@ -68,14 +72,18 @@ public class ApiServiceImpl implements ApiService {
     public void callForecastApi() {
         String forecastUrl = String.format("%s&appid=%s&units=metric&cnt=9", Constants.forecastBaseUrl, weatherApiKey);
         RestTemplate restTemplate = new RestTemplate();
-        Forecast forecastResponse = restTemplate.getForObject(forecastUrl, Forecast.class);
-        if (forecastResponse != null) {
-            forecastResponse.setId(Constants.forecastId);
-            weatherRepository.deleteByForecastId(Constants.forecastId);
-            forecastRepository.save(forecastResponse);
-            logger.info("Forecast updated");
+        try {
+            Forecast forecastResponse = restTemplate.getForObject(forecastUrl, Forecast.class);
+            if (forecastResponse != null) {
+                forecastResponse.setId(Constants.forecastId);
+                weatherRepository.deleteByForecastId(Constants.forecastId);
+                forecastRepository.save(forecastResponse);
+                logger.info("Forecast updated");
+            }
+            logger.info("Forecast Task executed");
+        } catch (Exception e) {
+            logger.info("Forecast Task failed");
         }
-        logger.info("Forecast Task executed");
     }
 
     public Forecast getLatestForecast() {
