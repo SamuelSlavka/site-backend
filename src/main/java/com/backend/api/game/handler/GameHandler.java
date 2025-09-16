@@ -69,6 +69,10 @@ public class GameHandler extends TextWebSocketHandler {
             case "request-existing-players" -> {
                 send(session, new JSONObject().put("type", "existing-players").put("players", players.values()));
             }
+            case "ping" -> {
+                Long timestamp = json.getLong("timestamp");
+                send(session, new JSONObject().put("type", "pong").put("timestamp", timestamp));
+            }
 
         }
     }
@@ -111,6 +115,7 @@ public class GameHandler extends TextWebSocketHandler {
         try {
             if (session.isOpen()) {
                 synchronized (session) {
+                    logger.info(msg.toString());
                     session.sendMessage(new TextMessage(msg.toString()));
                 }
             }
